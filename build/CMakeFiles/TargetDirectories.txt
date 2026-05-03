@@ -1,0 +1,3 @@
+/home/yifanliang219/cuda_test/build/CMakeFiles/main.dir
+/home/yifanliang219/cuda_test/build/CMakeFiles/edit_cache.dir
+/home/yifanliang219/cuda_test/build/CMakeFiles/rebuild_cache.dir

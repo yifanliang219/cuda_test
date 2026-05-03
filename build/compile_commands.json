@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/yifanliang219/cuda_test/build",
+  "command": "/usr/local/cuda-13.2/bin/nvcc -forward-unknown-to-host-compiler -I/home/yifanliang219/cuda_test/include -O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86] -Xcompiler=-fopenmp -x cu -c /home/yifanliang219/cuda_test/src/main.cu -o CMakeFiles/main.dir/src/main.cu.o",
+  "file": "/home/yifanliang219/cuda_test/src/main.cu"
+}
+]
