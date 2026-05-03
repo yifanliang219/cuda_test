@@ -50,6 +50,6 @@ int main(int argc, char *argv[])
     gpu_sum -= 0.5 * (sinsum(0.0f, terms) + sinsum(pi, terms));
     gpu_sum *= step_size;
 
-    printf("gpu sum = %.10f, steps %d, terms %d, time %.3f ms, threads %d\n", gpu_sum, steps, terms, gpu_time, threads);
+    printf("gpu sum = %.10f, steps %d, terms %d, time %.3f ms\n", gpu_sum, steps, terms, gpu_time);
     return 0;
 }
