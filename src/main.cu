@@ -4,52 +4,51 @@
 #include "cuda_runtime.h"
 #include "thrust/device_vector.h"
 
-__host__ __device__ inline float sinsum(float x, int terms)
+template <typename T>
+void cudaMallocErrorCheck(T **p, size_t size, const char *file, int line)
 {
-    float term = x;
-    float sum = term;
-    float x2 = x * x;
-    for (int n = 1; n < terms; n++)
+    cudaError_t err = ::cudaMalloc(reinterpret_cast<void **>(p), size);
+
+    if (err != cudaSuccess)
     {
-        term *= -x2 / (float)(2 * n * (2 * n + 1));
-        sum += term;
+        printf("%s in %s at line %d\n", cudaGetErrorString(err), file, line);
+        exit(EXIT_FAILURE);
     }
-    return sum;
 }
 
-__global__ void gpu_sin(float *sums, int steps, int terms, float step_size)
+#define cudaMalloc(p, size) cudaMallocErrorCheck((p), (size), __FILE__, __LINE__)
+
+__global__ void vecAddKernel(float *da, float *db, float *dc, int n)
 {
-    int step = blockIdx.x * blockDim.x + threadIdx.x;
-    if (step < steps)
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n)
     {
-        float x = step_size * step;
-        sums[step] = sinsum(x, terms);
+        dc[i] = da[i] + db[i];
     }
+}
+
+void vecAdd(float *ha, float *hb, float *hc, int n)
+{
+    size_t size = n * sizeof(float);
+    float *da, *db, *dc;
+
+    cudaMalloc(&da, size);
+    cudaMalloc(&db, size);
+    cudaMalloc(&dc, size);
+
+    cudaMemcpy(da, ha, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(db, hb, size, cudaMemcpyHostToDevice);
+
+    vecAddKernel<<<ceil(n / 256.0), 256>>>(da, db, dc, n);
+
+    cudaMemcpy(hc, dc, size, cudaMemcpyDeviceToHost);
+
+    cudaFree(da);
+    cudaFree(db);
+    cudaFree(dc);
 }
 
 int main(int argc, char *argv[])
 {
-    int steps = (argc > 1) ? atoi(argv[1]) : 10000000;
-    int terms = (argc > 2) ? atoi(argv[2]) : 1000;
-    int threads = 256;
-    int blocks = (steps + threads - 1) / threads;
-
-    double pi = 3.14159265358979323;
-    double step_size = pi / (steps - 1);
-
-    thrust::device_vector<float> dsums(steps);
-    float *dptr = thrust::raw_pointer_cast(&dsums[0]);
-
-    cx::timer tim;
-    
-    gpu_sin<<<blocks, threads>>>(dptr, steps, terms, (float)step_size);
-    double gpu_sum = thrust::reduce(dsums.begin(), dsums.end());
-
-    double gpu_time = tim.lap_ms();
-
-    gpu_sum -= 0.5 * (sinsum(0.0f, terms) + sinsum(pi, terms));
-    gpu_sum *= step_size;
-
-    printf("gpu sum = %.10f, steps %d, terms %d, time %.3f ms\n", gpu_sum, steps, terms, gpu_time);
     return 0;
 }
