@@ -9,6 +9,19 @@ set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 find_package(OpenMP REQUIRED)
+find_package(ZLIB REQUIRED)
+
+add_library(cnpy STATIC
+    ${CMAKE_SOURCE_DIR}/include/third_party/cnpy/cnpy.cpp
+)
+
+target_include_directories(cnpy PUBLIC
+    ${CMAKE_SOURCE_DIR}/include/third_party/cnpy
+)
+
+target_link_libraries(cnpy PUBLIC
+    ZLIB::ZLIB
+)
 
 add_executable(main
     src/main.cu
@@ -19,11 +32,12 @@ target_include_directories(main PRIVATE
 )
 
 target_include_directories(main SYSTEM PRIVATE
-    ${CMAKE_SOURCE_DIR}/include/third_party
+    ${CMAKE_SOURCE_DIR}/include/third_party/stb_image
 )
 
 target_link_libraries(main PRIVATE
     OpenMP::OpenMP_CXX
+    cnpy
 )
 
 target_compile_options(main PRIVATE

@@ -15,7 +15,8 @@
 					"source" : ".",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -30,7 +31,8 @@
 					"name" : "CudaProject",
 					"targetIndexes" : 
 					[
-						0
+						0,
+						1
 					]
 				}
 			],
@@ -38,8 +40,15 @@
 			[
 				{
 					"directoryIndex" : 0,
+					"id" : "cnpy::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-cnpy-Release-3df4a047685ca4444c81.json",
+					"name" : "cnpy",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Release-ee226ba9d4bac4a3fddc.json",
+					"jsonFile" : "target-main-Release-359294f8d218afefe094.json",
 					"name" : "main",
 					"projectIndex" : 0
 				}

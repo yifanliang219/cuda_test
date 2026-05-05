@@ -11,6 +11,7 @@
 		"commands" : 
 		[
 			"add_executable",
+			"target_link_libraries",
 			"target_compile_options",
 			"target_include_directories"
 		],
@@ -26,25 +27,31 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 13,
+				"line" : 26,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 29,
+				"line" : 38,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 17,
+				"line" : 43,
 				"parent" : 0
 			},
 			{
-				"command" : 2,
+				"command" : 3,
 				"file" : 0,
-				"line" : 21,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 34,
 				"parent" : 0
 			}
 		]
@@ -58,7 +65,7 @@
 					"fragment" : "-O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86]"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"fragment" : "-Xcompiler=-fopenmp"
 				},
 				{
@@ -68,13 +75,17 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 3,
+					"backtrace" : 4,
 					"path" : "/home/yifanliang219/cuda_test/include"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 2,
+					"path" : "/home/yifanliang219/cuda_test/include/third_party/cnpy"
+				},
+				{
+					"backtrace" : 5,
 					"isSystem" : true,
-					"path" : "/home/yifanliang219/cuda_test/include/third_party"
+					"path" : "/home/yifanliang219/cuda_test/include/third_party/stb_image"
 				}
 			],
 			"language" : "CUDA",
@@ -92,13 +103,20 @@
 			]
 		}
 	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "cnpy::@6890427a1f51a3e7e1df"
+		}
+	],
 	"id" : "main::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86]",
+				"fragment" : "-O3 -DNDEBUG",
 				"role" : "flags"
 			},
 			{
@@ -106,11 +124,28 @@
 				"role" : "flags"
 			},
 			{
+				"fragment" : "-L/usr/local/cuda-13.2/targets/x86_64-linux/lib/stubs",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-L/usr/local/cuda-13.2/targets/x86_64-linux/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "libcnpy.a",
+				"role" : "libraries"
+			},
+			{
 				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so",
 				"role" : "libraries"
 			},
 			{
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libpthread.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libz.so",
 				"role" : "libraries"
 			},
 			{
@@ -134,7 +169,7 @@
 				"role" : "libraries"
 			}
 		],
-		"language" : "CUDA"
+		"language" : "CXX"
 	},
 	"name" : "main",
 	"nameOnDisk" : "main",
