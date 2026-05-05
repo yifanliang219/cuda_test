@@ -10,6 +10,9 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 find_package(OpenMP REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+get_target_property(EIGEN_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
 
 add_library(cnpy STATIC
     ${CMAKE_SOURCE_DIR}/include/third_party/cnpy/cnpy.cpp
@@ -33,11 +36,13 @@ target_include_directories(main PRIVATE
 
 target_include_directories(main SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/include/third_party/stb_image
+    ${EIGEN_INCLUDE_DIRS}
 )
 
 target_link_libraries(main PRIVATE
     OpenMP::OpenMP_CXX
     cnpy
+    Eigen3::Eigen
 )
 
 target_compile_options(main PRIVATE

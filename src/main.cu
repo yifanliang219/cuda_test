@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     size_t num = 20;
     size_t width = 512;
 
-    vector<float> A = loadMatrix("A_f32_K20_N512.npy", num, width);
-    vector<float> B = loadMatrix("B_f32_K20_N512.npy", num, width);
+    const vector<float> A = loadMatrix("data/A_f32_K20_N512.npy", num, width);
+    const vector<float> B = loadMatrix("data/B_f32_K20_N512.npy", num, width);
+    const vector<float> C = loadMatrix("data/B_f32_K20_N512.npy", num, width);
 
 }
