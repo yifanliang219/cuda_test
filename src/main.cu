@@ -3,35 +3,24 @@
 #include "cxtimers.h"
 #include "cuda_runtime.h"
 #include "thrust/device_vector.h"
-#include "exercise2.cuh"
+#include "image_lib.h"
+#include "chp3_gray.cuh"
+
+using namespace std;
 
 int main(int argc, char *argv[])
 {
-    size_t num_v = 32;
-    size_t size = 1 << 23;
-    auto [a, b, c] = initialize(num_v, size);
+    string path = "data/pikachu.png";
+    Image img_in = loadImageAsUnsignedCharVector(path);
+    printf("Input image: height %d, width: %d, channels: %d, size: %d\n", img_in.height, img_in.width, img_in.channels, (int)img_in.data.capacity());
 
-    cx::timer tim;
+    Image img_same = Image{img_in.height, img_in.width, img_in.channels, img_in.data};
+    saveImageAsPng(img_same, "data/pikachu_same.png");
+    printf("Same image: height %d, width: %d, channels: %d, size: %d\n", img_same.height, img_same.width, img_same.channels, (int)img_same.data.capacity());
 
-    for (size_t i = 0; i < num_v; i++)
-    {
-        vecAdd_cpu(a[i].data(), b[i].data(), c[i].data(), size);
-    }
-
-    double cpu_time = tim.lap_ms();
-
-    printf("vector additions completed, cpu time %.3f ms.\n", cpu_time);
-
-    tim.reset();
-    tim.start();
-
-    for (size_t i = 0; i < num_v; i++)
-    {
-        vecAdd(a[i].data(), b[i].data(), c[i].data(), size);
-    }
-    double gpu_time = tim.lap_ms();
-
-    printf("vector additions completed, gpu time %.3f ms.\n", gpu_time);
-
+    vector<unsigned char> gray = colorToGray(img_in.data, img_in.height, img_in.width);
+    Image img_out = Image{img_in.height, img_in.width, 1, move(gray)};
+    printf("Output image: height %d, width: %d, channels: %d, size: %d\n", img_out.height, img_out.width, img_out.channels, (int)img_out.data.capacity());
+    saveImageAsPng(img_out, "data/pikachu_gray.png");
     return 0;
 }

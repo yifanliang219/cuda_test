@@ -26,19 +26,25 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 6,
+				"line" : 13,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 12,
+				"line" : 29,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 8,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 21,
 				"parent" : 0
 			}
 		]
@@ -54,6 +60,9 @@
 				{
 					"backtrace" : 2,
 					"fragment" : "-Xcompiler=-fopenmp"
+				},
+				{
+					"fragment" : "-std=c++17"
 				}
 			],
 			"includes" : 
@@ -61,6 +70,11 @@
 				{
 					"backtrace" : 3,
 					"path" : "/home/yifanliang219/cuda_test/include"
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "/home/yifanliang219/cuda_test/include/third_party"
 				}
 			],
 			"language" : "CUDA",
@@ -68,7 +82,7 @@
 			{
 				"backtraces" : 
 				[
-					4294967295
+					1
 				],
 				"standard" : "17"
 			},

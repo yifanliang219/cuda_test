@@ -51,8 +51,8 @@ build cmake_object_order_depends_target_main: phony || CMakeFiles/main.dir
 
 build CMakeFiles/main.dir/src/main.cu.o: CUDA_COMPILER__main_Release /home/yifanliang219/cuda_test/src/main.cu || cmake_object_order_depends_target_main
   DEP_FILE = CMakeFiles/main.dir/src/main.cu.o.d
-  FLAGS = -O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86] -Xcompiler=-fopenmp
-  INCLUDES = -I/home/yifanliang219/cuda_test/include
+  FLAGS = -O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86] -Xcompiler=-fopenmp -std=c++17
+  INCLUDES = -I/home/yifanliang219/cuda_test/include -isystem=/home/yifanliang219/cuda_test/include/third_party
   OBJECT_DIR = CMakeFiles/main.dir
   OBJECT_FILE_DIR = CMakeFiles/main.dir/src
 
