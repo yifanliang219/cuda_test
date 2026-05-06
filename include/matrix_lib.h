@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include <cnpy.h>
+#define EIGEN_NO_CUDA
 #include <Eigen/Dense>
+#include <iomanip>
 
 using namespace std;
 using namespace cnpy;
@@ -58,32 +60,42 @@ vector<float> eigenRefMatrixMul(const vector<float> &A, const vector<float> &B, 
     using RowMajorMatrixXf =
         Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-    for (size_t k = 0; k < num; k++) {
-        const float* A_ptr = A.data() + k * matrix_size;
-        const float* B_ptr = B.data() + k * matrix_size;
-        float* C_ptr = C.data() + k * matrix_size;
+    for (size_t k = 0; k < num; k++)
+    {
+        const float *A_ptr = A.data() + k * matrix_size;
+        const float *B_ptr = B.data() + k * matrix_size;
+        float *C_ptr = C.data() + k * matrix_size;
 
         Eigen::Map<const RowMajorMatrixXf> A_mat(
             A_ptr,
             static_cast<int>(width),
-            static_cast<int>(width)
-        );
+            static_cast<int>(width));
 
         Eigen::Map<const RowMajorMatrixXf> B_mat(
             B_ptr,
             static_cast<int>(width),
-            static_cast<int>(width)
-        );
+            static_cast<int>(width));
 
         Eigen::Map<RowMajorMatrixXf> C_mat(
             C_ptr,
             static_cast<int>(width),
-            static_cast<int>(width)
-        );
+            static_cast<int>(width));
 
         C_mat.noalias() = A_mat * B_mat;
     }
 
     return C;
-    
+}
+
+void printMatrix(const vector<float> &M, size_t width)
+{
+    ostringstream oss;
+    oss << fixed << setprecision(3);
+    for(int row=0;row<width;row++){
+        for(int col=0;col<width;col++){
+            oss << M[row*width+col] << ", ";
+        }
+        oss << '\n';
+    }
+    cout << oss.str();
 }

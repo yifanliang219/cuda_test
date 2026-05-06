@@ -6,34 +6,37 @@
 #include "thrust/device_vector.h"
 #include "image_lib.h"
 #include "matrix_lib.h"
+#include "ch3_matrix.cuh"
 
 using namespace std;
 
-int main(int argc, char *argv[])
+void loadMatrices(vector<float> &A, vector<float> &B, vector<float> &C)
 {
     size_t num = 20;
     size_t width = 512;
 
-    const vector<float> A = loadMatrix("data/A_f32_K20_N512.npy", num, width);
-    const vector<float> B = loadMatrix("data/B_f32_K20_N512.npy", num, width);
-    const vector<float> C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
+    A = loadMatrix("data/A_f32_K20_N512.npy", num, width);
+    B = loadMatrix("data/B_f32_K20_N512.npy", num, width);
+    C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
+}
 
-    vector<float> firstRowInA(A.begin(), A.begin() + width);
-    vector<float> firstColInB(width);
+int main(int argc, char *argv[])
+{
 
-    for (int i = 0; i < width; i++)
+    vector<float> A, B, C;
+    loadMatrices(A, B, C);
+
+    const vector<float> A1(A.begin(), A.begin() + 512 * 512);
+    const vector<float> B1(B.begin(), B.begin() + 512 * 512);
+    const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
+    const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
+
+    for (int i = 0; i < 512 * 512; i++)
     {
-        firstColInB[i] = *(B.begin() + i * width);
+        if (abs(C_cuda[i] - C_eigen[i]) > 0.0005)
+        {
+            printf("mismatch at index %d.\n", i);
+        }
     }
-
-    float dot = 0.0;
-
-    for (int i = 0; i < width; i++)
-    {
-        dot += firstRowInA[i] * firstColInB[i];
-    }
-
-    printf("A * B = %.3f, C = %.3f\n", dot, C[0]);
-
     return 0;
 }
