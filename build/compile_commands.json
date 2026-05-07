@@ -1,12 +1,12 @@
 [
 {
   "directory": "/home/yifanliang219/cuda_test/build",
-  "command": "/usr/bin/g++ -I/home/yifanliang219/cuda_test/include/third_party/cnpy -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/cnpy.dir/include/third_party/cnpy/cnpy.cpp.o -c /home/yifanliang219/cuda_test/include/third_party/cnpy/cnpy.cpp",
+  "command": "/usr/bin/g++ -I/home/yifanliang219/cuda_test/include/third_party/cnpy -g -std=gnu++17 -o CMakeFiles/cnpy.dir/include/third_party/cnpy/cnpy.cpp.o -c /home/yifanliang219/cuda_test/include/third_party/cnpy/cnpy.cpp",
   "file": "/home/yifanliang219/cuda_test/include/third_party/cnpy/cnpy.cpp"
 },
 {
   "directory": "/home/yifanliang219/cuda_test/build",
-  "command": "/usr/local/cuda-13.2/bin/nvcc -forward-unknown-to-host-compiler -I/home/yifanliang219/cuda_test/include -I/home/yifanliang219/cuda_test/include/third_party/cnpy -isystem=/home/yifanliang219/cuda_test/include/third_party/stb_image -isystem=/usr/include/eigen3 -O3 -DNDEBUG --generate-code=arch=compute_86,code=[compute_86,sm_86] -Xcompiler=-fopenmp -std=c++17 -x cu -c /home/yifanliang219/cuda_test/src/main.cu -o CMakeFiles/main.dir/src/main.cu.o",
+  "command": "/usr/local/cuda-13.2/bin/nvcc -forward-unknown-to-host-compiler -I/home/yifanliang219/cuda_test/include -I/home/yifanliang219/cuda_test/include/third_party/cnpy -isystem=/home/yifanliang219/cuda_test/include/third_party/stb_image -isystem=/usr/include/eigen3 -g --generate-code=arch=compute_86,code=[compute_86,sm_86] -Xcompiler=-fopenmp -std=c++17 -x cu -c /home/yifanliang219/cuda_test/src/main.cu -o CMakeFiles/main.dir/src/main.cu.o",
   "file": "/home/yifanliang219/cuda_test/src/main.cu"
 }
 ]
