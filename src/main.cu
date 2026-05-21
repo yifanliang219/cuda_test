@@ -7,6 +7,7 @@
 #include "image_lib.h"
 #include "matrix_lib.h"
 #include "ch3_matrix.cuh"
+#include "mdp_csr.h"
 
 using namespace std;
 
@@ -31,12 +32,8 @@ int main(int argc, char *argv[])
     const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
     const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
-    for (size_t i = 0; i < 512 * 512; i++)
-    {
-        if (abs(C_cuda[i] - C_eigen[i]) > 0.0005)
-        {
-            printf("mismatch at index %zu: C_cuda = %.4f, C_eigen = %.4f\n", i, C_cuda[i], C_eigen[i]);
-        }
-    }
+    vector<MDP> mdps = generate_random_MDPs(1, 10, 3, 0.95f, 42);
+    print_MDP(mdps[0]);
+
     return 0;
 }

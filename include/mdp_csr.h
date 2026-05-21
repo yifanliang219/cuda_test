@@ -1,6 +1,8 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -76,4 +78,45 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
         }
     }
     return mdps;
+}
+
+void print_MDP(const MDP& mdp)
+{
+    cout << "MDP information\n";
+    cout << "---------------\n";
+    cout << "num_states  = " << mdp.num_states << '\n';
+    cout << "num_actions = " << mdp.num_actions << '\n';
+    cout << "gamma       = " << mdp.gamma << '\n';
+    cout << "num_rows    = " << mdp.num_states * mdp.num_actions << '\n';
+    cout << "num_edges   = " << mdp.prob.size() << '\n';
+    cout << '\n';
+
+    cout << fixed << setprecision(4);
+
+    for (size_t s = 0; s < mdp.num_states; ++s)
+    {
+        for (size_t a = 0; a < mdp.num_actions; ++a)
+        {
+            size_t row = s * mdp.num_actions + a;
+
+            cout << "State " << s << ", Action " << a << ":\n";
+
+            size_t begin = mdp.row_ptr[row];
+            size_t end   = mdp.row_ptr[row + 1];
+
+            float prob_sum = 0.0f;
+
+            for (size_t k = begin; k < end; ++k)
+            {
+                prob_sum += mdp.prob[k];
+
+                cout << "    -> next_state = " << mdp.next_state[k]
+                     << ", prob = " << mdp.prob[k]
+                     << ", reward = " << mdp.reward[k]
+                     << '\n';
+            }
+
+            cout << "    probability sum = " << prob_sum << "\n\n";
+        }
+    }
 }
