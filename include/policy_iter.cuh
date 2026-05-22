@@ -31,7 +31,7 @@ bool policy_eval_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float>
             {
                 state_value += mdp.prob[offset] * (mdp.reward[offset] + mdp.gamma * state_values[mdp.next_state[offset]]);
             }
-            delta = max(delta, fabs(state_value - state_values[s]));
+            delta = max(delta, fabsf(state_value - state_values[s]));
             state_values[s] = state_value;
         }
         if (delta < tolerance)
@@ -42,26 +42,49 @@ bool policy_eval_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float>
     return false;
 }
 
-__global__ void policyEvalCuda(float* state_vals, float* probs, float* rewards, size_t* next_states, size_t* row_ptr, int *not_converged)
+__global__ void policy_eval_kernel(float *newV, const float *oldV, const size_t *policy_d, const size_t num_states, const size_t num_actions, const float gamma, const float tolerance,
+                               const float *probs, const float *rewards, const size_t *next_states, const size_t *row_ptr, int *not_converged_d)
 {
+    size_t s = blockIdx.x * blockDim.x + threadIdx.x;
+    if (s < num_states)
+    {
+        size_t action = policy_d[s];
+        size_t row = s * num_actions + action;
+        size_t begin = row_ptr[row];
+        size_t end = row_ptr[row + 1];
+        float state_value = 0.0f;
+        for (size_t offset = begin; offset < end; offset++)
+        {
+            state_value += probs[offset] * (rewards[offset] + gamma * oldV[next_states[offset]]);
+        }
+        if (fabsf(state_value - oldV[s]) > tolerance)
+        {
+            atomicExch(not_converged_d, 1);
+        }
+        newV[s] = state_value;
+    }
 }
 
-bool policy_eval_gpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &state_values, float tolerance)
+bool policy_eval_gpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &state_values, const float tolerance)
 {
     size_t num_states = state_values.size();
     size_t num_trans = mdp.prob.size();
     size_t size_state_values = num_states * sizeof(float);
     size_t size_p_r = num_trans * sizeof(float);
+    size_t size_policy = num_states * sizeof(size_t);
     size_t size_next_states = num_trans * sizeof(size_t);
-    size_t size_rowptr = num_states * sizeof(size_t);
-    float *state_vals, *probs, *rewards;
-    size_t *next_states, *rowPtr;
-    cudaMalloc(&state_vals, size_state_values);
+    size_t size_rowptr = mdp.row_ptr.size() * sizeof(size_t);
+    float *newV, *oldV, *probs, *rewards;
+    size_t *next_states, *policy_d, *rowPtr;
+    cudaMalloc(&newV, size_state_values);
+    cudaMalloc(&oldV, size_state_values);
+    cudaMalloc(&policy_d, size_policy);
     cudaMalloc(&probs, size_p_r);
     cudaMalloc(&rewards, size_p_r);
     cudaMalloc(&next_states, size_next_states);
     cudaMalloc(&rowPtr, size_rowptr);
-    cudaMemcpy(state_vals, state_values.data(), size_state_values, cudaMemcpyHostToDevice);
+    cudaMemcpy(oldV, state_values.data(), size_state_values, cudaMemcpyHostToDevice);
+    cudaMemcpy(policy_d, policy.data(), size_policy, cudaMemcpyHostToDevice);
     cudaMemcpy(probs, mdp.prob.data(), size_p_r, cudaMemcpyHostToDevice);
     cudaMemcpy(rewards, mdp.reward.data(), size_p_r, cudaMemcpyHostToDevice);
     cudaMemcpy(next_states, mdp.next_state.data(), size_next_states, cudaMemcpyHostToDevice);
@@ -70,13 +93,30 @@ bool policy_eval_gpu(const MDP &mdp, const vector<size_t> &policy, vector<float>
     int blocks = (num_states + threads - 1) / threads;
     dim3 dimGrid(blocks, 1, 1);
     dim3 dimBlock(threads, 1, 1);
-    int* not_converged;
-    cudaMalloc(&not_converged, sizeof(int));
-    cudaMemset(not_converged, 0, sizeof(int));
-    for (size_t s = 0; s < num_states; s++)
+    int *not_converged_d;
+    cudaMalloc(&not_converged_d, sizeof(int));
+    int not_converged_h = 1;
+    for (size_t iter = 0; iter < 10000; iter++)
     {
-        policyEvalCuda<<<dimGrid, dimBlock>>>(state_vals, probs, rewards, next_states, rowPtr, not_converged);
+        cudaMemset(not_converged_d, 0, sizeof(int));
+        policy_eval_kernel<<<dimGrid, dimBlock>>>(newV, oldV, policy_d, mdp.num_states, mdp.num_actions, mdp.gamma, tolerance, probs, rewards, next_states, rowPtr, not_converged_d);
+        cudaMemcpy(&not_converged_h, not_converged_d, sizeof(int), cudaMemcpyDeviceToHost);
+        swap(newV, oldV);
+        if (not_converged_h == 0)
+        {
+            break;
+        }
     }
+    cudaMemcpy(state_values.data(), oldV, size_state_values, cudaMemcpyDeviceToHost);
+    cudaFree(newV);
+    cudaFree(oldV);
+    cudaFree(policy_d);
+    cudaFree(probs);
+    cudaFree(rewards);
+    cudaFree(next_states);
+    cudaFree(rowPtr);
+    cudaFree(not_converged_d);
+    return (not_converged_h == 0) ? true : false;
 }
 
 bool policy_improvement_cpu(const MDP &mdp, vector<size_t> &policy, const vector<float> &state_values)
@@ -141,7 +181,7 @@ PolicyIteration policy_iter_gpu(const MDP &mdp, float tolerance)
         {
             break;
         }
-        if (policy_improvement_gpu(mdp, iter.policy, iter.state_values))
+        if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
             break;
@@ -154,13 +194,11 @@ void printPolicyIter(PolicyIteration iter)
 {
     if (iter.converged)
     {
-        cout << "policy iteration succeed in iteration " << iter.num_iterations << ".\n"
-             << endl;
+        cout << "policy iteration succeed in iteration " << iter.num_iterations << ".\n";
     }
     else
     {
-        cout << "policy evaluation failed to converge in iteration " << iter.num_iterations << ".\n"
-             << endl;
+        cout << "policy evaluation failed to converge in iteration " << iter.num_iterations << ".\n";
     }
     cout << "optimal policy is (";
     for (size_t a : iter.policy)

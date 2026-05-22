@@ -28,7 +28,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
     mt19937 rng(seed);
     uniform_real_distribution<float> weight_dist(0.01f, 1.0f);
     uniform_real_distribution<float> reward_dist(-1.0f, 1.0f);
-    size_t max_num_next_states = min(static_cast<size_t>(3), states);
+    size_t max_num_next_states = min<size_t>(3, states);
     uniform_int_distribution<size_t> num_successors_dist(1, max_num_next_states);
     vector<size_t> state_list(states);
     size_t num_state_action_pairs = states * actions;

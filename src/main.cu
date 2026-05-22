@@ -22,6 +22,18 @@ void loadMatrices(vector<float> &A, vector<float> &B, vector<float> &C)
     C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
 }
 
+bool checkEqual(PolicyIteration iter1, PolicyIteration iter2)
+{
+    for (size_t i = 0; i < iter1.state_values.size(); i++)
+    {
+        if (fabs(iter1.state_values[i] - iter2.state_values[i]) > 0.0001f || (iter1.policy[i] != iter2.policy[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -33,9 +45,23 @@ int main(int argc, char *argv[])
     const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
     const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
-    vector<MDP> mdps = generate_random_MDPs(1, 8, 4, 0.95f, 42);
-    //print_MDP(mdps[0]);
-    printPolicyIter(policy_iter_cpu(mdps[0], 1e-4f));
+    vector<MDP> mdps = generate_random_MDPs(1, 2048, 8, 0.95f, 123);
+    // print_MDP(mdps[0]);
+    cx::timer tim;
+    PolicyIteration iter_cpu = policy_iter_cpu(mdps[0], 1e-6f);
+    double cpu_time = tim.lap_ms();
+    tim.reset();
+    tim.start();
+    PolicyIteration iter_gpu = policy_iter_gpu(mdps[0], 1e-6f);
+    double gpu_time = tim.lap_ms();
+    
+    //printPolicyIter(iter_cpu);
+    //printPolicyIter(iter_gpu);
 
+    cout << "cpu time: " << cpu_time << ", gpu time: " << gpu_time << endl;
+
+    cout << "same policy and same values: " << checkEqual(iter_cpu, iter_gpu) << endl;
+
+    cout << "converged: " << iter_cpu.converged << ", " << iter_gpu.converged << endl;
     return 0;
 }
