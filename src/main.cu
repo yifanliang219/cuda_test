@@ -8,7 +8,7 @@
 #include "matrix_lib.h"
 #include "ch3_matrix.cuh"
 #include "mdp_csr.h"
-#include "policy_iter.h"
+#include "policy_iter.cuh"
 
 using namespace std;
 
@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
     const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
     vector<MDP> mdps = generate_random_MDPs(1, 8, 4, 0.95f, 42);
-    print_MDP(mdps[0]);
-    policy_iter(mdps[0], 1e-4f);
+    //print_MDP(mdps[0]);
+    printPolicyIter(policy_iter_cpu(mdps[0], 1e-4f));
 
     return 0;
 }
