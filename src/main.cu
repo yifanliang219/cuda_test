@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
     const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
-    vector<MDP> mdps = generate_random_MDPs(1, 2048, 8, 0.95f, 123);
+    vector<MDP> mdps = generate_random_MDPs(1, 5096, 12, 0.95f, 123);
     // print_MDP(mdps[0]);
     cx::timer tim;
     PolicyIteration iter_cpu = policy_iter_cpu(mdps[0], 1e-6f);
@@ -54,14 +54,18 @@ int main(int argc, char *argv[])
     tim.start();
     PolicyIteration iter_gpu = policy_iter_gpu(mdps[0], 1e-6f);
     double gpu_time = tim.lap_ms();
+    tim.reset();
+    tim.start();
+    PolicyIteration iter_better_gpu = policy_iter_gpu_better(mdps[0], 1e-6f);
+    double gpu_better_time = tim.lap_ms();
     
     //printPolicyIter(iter_cpu);
     //printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", gpu time: " << gpu_time << endl;
+    cout << "cpu time: " << cpu_time << ", gpu time: " << gpu_time << ", gpu better time: " << gpu_better_time << endl;
 
-    cout << "same policy and same values: " << checkEqual(iter_cpu, iter_gpu) << endl;
+    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_gpu) && checkEqual(iter_gpu, iter_better_gpu)) << endl;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_gpu.converged << endl;
+    cout << "converged: " << iter_cpu.converged << ", " << iter_gpu.converged << ", " << iter_better_gpu.converged << endl;
     return 0;
 }
