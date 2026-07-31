@@ -37,34 +37,46 @@ bool checkEqual(PolicyIteration iter1, PolicyIteration iter2)
 int main(int argc, char *argv[])
 {
 
-    vector<float> A, B, C;
-    loadMatrices(A, B, C);
+    // vector<float> A, B, C;
+    // loadMatrices(A, B, C);
 
-    const vector<float> A1(A.begin(), A.begin() + 512 * 512);
-    const vector<float> B1(B.begin(), B.begin() + 512 * 512);
-    const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
-    const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
+    // const vector<float> A1(A.begin(), A.begin() + 512 * 512);
+    // const vector<float> B1(B.begin(), B.begin() + 512 * 512);
+    // const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
+    // const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
-    vector<MDP> mdps = generate_random_MDPs(1, 5096, 12, 0.95f, 123);
-    // print_MDP(mdps[0]);
+    // vector<MDP> mdps = generate_random_MDPs(1, 50960, 64, 0.95f, 123);
+    // save_mdp(mdps[0], "data/50960_64.npz");
+
+    MDP loaded = load_mdp("data/50960_64.npz");
+    // // print_MDP(mdps[0]);
+
+    cudaFree(0);
+
     cx::timer tim;
-    PolicyIteration iter_cpu = policy_iter_cpu(mdps[0], 1e-6f);
+
+    tim.start();
+    PolicyIteration iter_cpu = policy_iter_cpu(loaded, 1e-6f);
     double cpu_time = tim.lap_ms();
+
     tim.reset();
     tim.start();
-    PolicyIteration iter_gpu = policy_iter_gpu(mdps[0], 1e-6f);
+    PolicyIteration iter_gpu = policy_iter_gpu(loaded, 1e-6f);
+    cudaDeviceSynchronize();
     double gpu_time = tim.lap_ms();
+
     tim.reset();
     tim.start();
-    PolicyIteration iter_better_gpu = policy_iter_gpu_better(mdps[0], 1e-6f);
+    PolicyIteration iter_better_gpu = policy_iter_gpu_better(loaded, 1e-6f);
+    cudaDeviceSynchronize();
     double gpu_better_time = tim.lap_ms();
-    
-    //printPolicyIter(iter_cpu);
-    //printPolicyIter(iter_gpu);
+
+    // printPolicyIter(iter_cpu);
+    // printPolicyIter(iter_gpu);
 
     cout << "cpu time: " << cpu_time << ", gpu time: " << gpu_time << ", gpu better time: " << gpu_better_time << endl;
 
-    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_gpu) && checkEqual(iter_gpu, iter_better_gpu)) << endl;
+    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_gpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
 
     cout << "converged: " << iter_cpu.converged << ", " << iter_gpu.converged << ", " << iter_better_gpu.converged << endl;
     return 0;

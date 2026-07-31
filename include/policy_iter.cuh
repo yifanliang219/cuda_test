@@ -255,40 +255,43 @@ PolicyIteration policy_iter_gpu_better(const MDP &mdp, float tolerance)
 
     // init
     PolicyIteration iter = {vector<size_t>(mdp.num_states, 0), vector<float>(mdp.num_states, 0.0f), false, 0};
-    size_t num_states = iter.state_values.size();
+    size_t num_states = mdp.num_states;
     size_t num_trans = mdp.prob.size();
     size_t size_state_values = num_states * sizeof(float);
     size_t size_p_r = num_trans * sizeof(float);
     size_t size_policy = num_states * sizeof(size_t);
     size_t size_next_states = num_trans * sizeof(size_t);
     size_t size_rowptr = mdp.row_ptr.size() * sizeof(size_t);
+    float *newV, *oldV, *probs, *rewards;
+    size_t *next_states, *policy_d, *rowPtr;
+
+    cudaMalloc(&newV, size_state_values);
+    cudaMalloc(&oldV, size_state_values);
+    cudaMalloc(&policy_d, size_policy);
+    cudaMalloc(&probs, size_p_r);
+    cudaMalloc(&rewards, size_p_r);
+    cudaMalloc(&next_states, size_next_states);
+    cudaMalloc(&rowPtr, size_rowptr);
+    cudaMemcpy(oldV, iter.state_values.data(), size_state_values, cudaMemcpyHostToDevice);
+    cudaMemcpy(policy_d, iter.policy.data(), size_policy, cudaMemcpyHostToDevice);
+    cudaMemcpy(probs, mdp.prob.data(), size_p_r, cudaMemcpyHostToDevice);
+    cudaMemcpy(rewards, mdp.reward.data(), size_p_r, cudaMemcpyHostToDevice);
+    cudaMemcpy(next_states, mdp.next_state.data(), size_next_states, cudaMemcpyHostToDevice);
+    cudaMemcpy(rowPtr, mdp.row_ptr.data(), size_rowptr, cudaMemcpyHostToDevice);
+
+    int threads = 256;
+    int blocks = (num_states + threads - 1) / threads;
+    dim3 dimGrid(blocks, 1, 1);
+    dim3 dimBlock(threads, 1, 1);
+
+    int *not_converged_d;
+    cudaMalloc(&not_converged_d, sizeof(int));
 
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
 
         // policy evaluation
-        float *newV, *oldV, *probs, *rewards;
-        size_t *next_states, *policy_d, *rowPtr;
-        cudaMalloc(&newV, size_state_values);
-        cudaMalloc(&oldV, size_state_values);
-        cudaMalloc(&policy_d, size_policy);
-        cudaMalloc(&probs, size_p_r);
-        cudaMalloc(&rewards, size_p_r);
-        cudaMalloc(&next_states, size_next_states);
-        cudaMalloc(&rowPtr, size_rowptr);
-        cudaMemcpy(oldV, iter.state_values.data(), size_state_values, cudaMemcpyHostToDevice);
-        cudaMemcpy(policy_d, iter.policy.data(), size_policy, cudaMemcpyHostToDevice);
-        cudaMemcpy(probs, mdp.prob.data(), size_p_r, cudaMemcpyHostToDevice);
-        cudaMemcpy(rewards, mdp.reward.data(), size_p_r, cudaMemcpyHostToDevice);
-        cudaMemcpy(next_states, mdp.next_state.data(), size_next_states, cudaMemcpyHostToDevice);
-        cudaMemcpy(rowPtr, mdp.row_ptr.data(), size_rowptr, cudaMemcpyHostToDevice);
-        int threads = 256;
-        int blocks = (num_states + threads - 1) / threads;
-        dim3 dimGrid(blocks, 1, 1);
-        dim3 dimBlock(threads, 1, 1);
-        int *not_converged_d;
-        cudaMalloc(&not_converged_d, sizeof(int));
         int not_converged_h = 1;
         // loop until state values converge
         for (size_t l = 0; l < 10000; l++)
@@ -302,7 +305,6 @@ PolicyIteration policy_iter_gpu_better(const MDP &mdp, float tolerance)
                 break;
             }
         }
-        cudaMemcpy(iter.state_values.data(), oldV, size_state_values, cudaMemcpyDeviceToHost);
         if (not_converged_h == 1)
         {
             break;
@@ -311,23 +313,26 @@ PolicyIteration policy_iter_gpu_better(const MDP &mdp, float tolerance)
         // policy improvement
         cudaMemset(not_converged_d, 0, sizeof(int));
         not_converged_h = 1;
-        policy_improvement_kernel<<<dimGrid, dimBlock>>>(policy_d, newV, mdp.num_states, mdp.num_actions, mdp.gamma, probs, rewards, next_states, rowPtr, not_converged_d);
+        policy_improvement_kernel<<<dimGrid, dimBlock>>>(policy_d, oldV, mdp.num_states, mdp.num_actions, mdp.gamma, probs, rewards, next_states, rowPtr, not_converged_d);
         cudaMemcpy(&not_converged_h, not_converged_d, sizeof(int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(iter.policy.data(), policy_d, size_policy, cudaMemcpyDeviceToHost);
-        cudaFree(newV);
-        cudaFree(oldV);
-        cudaFree(policy_d);
-        cudaFree(probs);
-        cudaFree(rewards);
-        cudaFree(next_states);
-        cudaFree(rowPtr);
-        cudaFree(not_converged_d);
         if (not_converged_h == 0)
         {
             iter.converged = true;
             break;
         }
     }
+
+    cudaMemcpy(iter.state_values.data(), oldV, size_state_values, cudaMemcpyDeviceToHost);
+    cudaMemcpy(iter.policy.data(), policy_d, size_policy, cudaMemcpyDeviceToHost);
+    cudaFree(newV);
+    cudaFree(oldV);
+    cudaFree(policy_d);
+    cudaFree(probs);
+    cudaFree(rewards);
+    cudaFree(next_states);
+    cudaFree(rowPtr);
+    cudaFree(not_converged_d);
+
     return iter;
 }
 
