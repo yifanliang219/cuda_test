@@ -4,16 +4,9 @@
 #include "cuda_runtime.h"
 #include <vector>
 #include "mdp_csr.h"
+#include "policy_iter.h"
 
 using namespace std;
-
-struct PolicyIteration
-{
-    vector<size_t> policy;
-    vector<float> state_values;
-    bool converged;
-    size_t num_iterations;
-};
 
 // Gauss–Seidel style
 bool policy_eval_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &state_values, float tolerance)
