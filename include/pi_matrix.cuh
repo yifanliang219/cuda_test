@@ -10,7 +10,7 @@ using namespace std;
 vector<float> generate_matrix_I(size_t n)
 {
     vector I(n * n, 0.0f);
-    for (size_t i = 0; i < n * n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         I[n * i + i] = 1.0f;
     }
@@ -37,14 +37,38 @@ vector<float> generate_matrix_P(const MDP &mdp, const vector<size_t> &policy)
     return P;
 }
 
+// vector<float> generate_matrix_A(const MDP &mdp, const vector<size_t> &policy)
+// {
+//     vector<float> I = generate_matrix_I(mdp.num_states);
+//     vector<float> P = generate_matrix_P(mdp, policy);
+//     vector<float> A(mdp.num_states * mdp.num_states, 0.0f);
+//     for (size_t s = 0; s < A.size(); s++)
+//     {
+//         A[s] = I[s] - mdp.gamma * P[s];
+//     }
+//     return A;
+// }
+
 vector<float> generate_matrix_A(const MDP &mdp, const vector<size_t> &policy)
 {
-    vector<float> I = generate_matrix_I(mdp.num_states);
-    vector<float> P = generate_matrix_P(mdp, policy);
-    vector<float> A(mdp.num_states * mdp.num_states, 0.0f);
-    for (size_t s = 0; s < A.size(); s++)
+    size_t n = mdp.num_states;
+
+    vector<float> A(n * n, 0.0f);
+
+    for (size_t s = 0; s < n; s++)
     {
-        A[s] = I[s] - mdp.gamma * P[s];
+        A[n * s + s] = 1.0f;
+        size_t action = policy[s];
+        size_t row = s * mdp.num_actions + action;
+        size_t begin = mdp.row_ptr[row];
+        size_t end = mdp.row_ptr[row + 1];
+        for (size_t offset = begin; offset < end; offset++)
+        {
+            size_t next = mdp.next_state[offset];
+            float p = mdp.prob[offset];
+            A[s * n + next] += -mdp.gamma * p;
+        }
     }
+
     return A;
 }
