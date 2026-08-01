@@ -79,27 +79,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
 
                 for (size_t i = 0; i < num_successors; i++)
                 {
-                    size_t candidate;
-
-                    bool duplicate;
-
-                    do
-                    {
-                        candidate = state_dist(rng);
-                        duplicate = false;
-
-                        for (size_t j = 0; j < i; j++)
-                        {
-                            if (sampled_states[j] == candidate)
-                            {
-                                duplicate = true;
-                                break;
-                            }
-                        }
-
-                    } while (duplicate);
-
-                    sampled_states[i] = candidate;
+                    sampled_states[i] = state_dist(rng);
                 }
 
                 array<float, 3> weights;
@@ -125,7 +105,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
     return mdps;
 }
 
-void print_MDP(const MDP& mdp)
+void print_MDP(const MDP &mdp)
 {
     cout << "MDP information\n";
     cout << "---------------\n";
@@ -147,7 +127,7 @@ void print_MDP(const MDP& mdp)
             cout << "State " << s << ", Action " << a << ":\n";
 
             size_t begin = mdp.row_ptr[row];
-            size_t end   = mdp.row_ptr[row + 1];
+            size_t end = mdp.row_ptr[row + 1];
 
             float prob_sum = 0.0f;
 
@@ -172,8 +152,7 @@ void save_mdp(const MDP &mdp, const string &filename)
         static_cast<uint64_t>(mdp.num_states),
         static_cast<uint64_t>(mdp.num_actions),
         static_cast<uint64_t>(mdp.prob.size()),
-        static_cast<uint64_t>(mdp.row_ptr.size())
-    };
+        static_cast<uint64_t>(mdp.row_ptr.size())};
 
     vector<uint64_t> next_state_64(mdp.next_state.begin(), mdp.next_state.end());
     vector<uint64_t> row_ptr_64(mdp.row_ptr.begin(), mdp.row_ptr.end());
