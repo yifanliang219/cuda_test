@@ -8,7 +8,8 @@
 #include "matrix_lib.h"
 #include "ch3_matrix.cuh"
 #include "mdp_csr.h"
-#include "policy_iter.cuh"
+#include "policy_iter_fp.cuh"
+#include "policy_iter_matrix.cuh"
 
 using namespace std;
 
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
     // vector<MDP> mdps = generate_random_MDPs(1, 50960, 64, 0.95f, 123);
     // save_mdp(mdps[0], "data/50960_64.npz");
 
-    MDP loaded = load_mdp("data/50960_64.npz");
+    MDP loaded = load_mdp("data/5096_16.npz");
     // // print_MDP(mdps[0]);
 
     cudaFree(0);
@@ -61,9 +62,9 @@ int main(int argc, char *argv[])
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_gpu = policy_iter_gpu(loaded, 1e-6f);
+    PolicyIteration iter_LU_cpu = policy_iter_matrix_LU_cpu(loaded);
     cudaDeviceSynchronize();
-    double gpu_time = tim.lap_ms();
+    double cpu_LU_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
@@ -74,10 +75,10 @@ int main(int argc, char *argv[])
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", gpu time: " << gpu_time << ", gpu better time: " << gpu_better_time << endl;
+    cout << "cpu time: " << cpu_time << ", cpu LU time: " << cpu_LU_time << ", gpu better time: " << gpu_better_time << endl;
 
-    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_gpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
+    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_LU_cpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_gpu.converged << ", " << iter_better_gpu.converged << endl;
+    cout << "converged: " << iter_cpu.converged << ", " << iter_LU_cpu.converged << ", " << iter_better_gpu.converged << endl;
     return 0;
 }

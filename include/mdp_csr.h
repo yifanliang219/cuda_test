@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
-#include "mdp_csr.h"
 #include "cnpy.h"
 
 using namespace std;

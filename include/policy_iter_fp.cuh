@@ -230,6 +230,7 @@ PolicyIteration policy_iter_cpu(const MDP &mdp, float tolerance)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
+        cout << "policy iteration CPU FP loop " << iter.num_iterations << endl;
         if (!policy_eval_cpu(mdp, iter.policy, iter.state_values, tolerance))
         {
             break;
@@ -237,6 +238,7 @@ PolicyIteration policy_iter_cpu(const MDP &mdp, float tolerance)
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
+            cout << "policy iteration CPU FP completed successfully." << endl;
             break;
         }
     }
@@ -283,7 +285,7 @@ PolicyIteration policy_iter_gpu_better(const MDP &mdp, float tolerance)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
-
+        cout << "policy iteration GPU FP loop " << iter.num_iterations << endl;
         // policy evaluation
         int not_converged_h = 1;
         // loop until state values converge
@@ -311,6 +313,7 @@ PolicyIteration policy_iter_gpu_better(const MDP &mdp, float tolerance)
         if (not_converged_h == 0)
         {
             iter.converged = true;
+            cout << "policy iteration GPU FP completed successfully." << endl;
             break;
         }
     }
@@ -335,6 +338,7 @@ PolicyIteration policy_iter_gpu(const MDP &mdp, float tolerance)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
+        cout << "policy iteration GPU FP loop " << iter.num_iterations << endl;
         if (!policy_eval_gpu(mdp, iter.policy, iter.state_values, tolerance))
         {
             break;
@@ -342,6 +346,7 @@ PolicyIteration policy_iter_gpu(const MDP &mdp, float tolerance)
         if (policy_improvement_gpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
+            cout << "policy iteration GPU FP completed successfully." << endl;
             break;
         }
     }
