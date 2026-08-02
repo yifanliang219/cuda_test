@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
-    cudaDeviceSynchronize();
-    double cpu_sparse_LU_time = tim.lap_ms();
+    PolicyIteration iter_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
+    // cudaDeviceSynchronize();
+    double cpu_BiCGSTAB_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
@@ -75,10 +75,11 @@ int main(int argc, char *argv[])
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", cpu sparse LU time: " << cpu_sparse_LU_time << ", gpu better time: " << gpu_better_time << endl;
+    cout << "cpu time: " << cpu_time << ", cpu BiCGSTAB time: " << cpu_BiCGSTAB_time << ", gpu better time: " << gpu_better_time << endl;
 
-    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_LU_cpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
+    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_BiCGSTAB_cpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_LU_cpu.converged << ", " << iter_better_gpu.converged << endl;
+    cout << "converged: " << iter_cpu.converged << ", " << iter_BiCGSTAB_cpu.converged << ", " << iter_better_gpu.converged << endl;
+
     return 0;
 }
