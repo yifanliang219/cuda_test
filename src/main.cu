@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_LU_cpu = policy_iter_matrix_LU_cpu(loaded);
+    PolicyIteration iter_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
     cudaDeviceSynchronize();
-    double cpu_LU_time = tim.lap_ms();
+    double cpu_sparse_LU_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", cpu LU time: " << cpu_LU_time << ", gpu better time: " << gpu_better_time << endl;
+    cout << "cpu time: " << cpu_time << ", cpu sparse LU time: " << cpu_sparse_LU_time << ", gpu better time: " << gpu_better_time << endl;
 
     cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_LU_cpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
 

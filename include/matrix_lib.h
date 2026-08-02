@@ -8,6 +8,7 @@
 #include <cnpy.h>
 #define EIGEN_NO_CUDA
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <iomanip>
 
 using namespace std;
