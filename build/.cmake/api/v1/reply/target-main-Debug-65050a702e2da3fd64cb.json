@@ -12,7 +12,6 @@
 		[
 			"add_executable",
 			"target_link_libraries",
-			"target_compile_options",
 			"target_include_directories"
 		],
 		"files" : 
@@ -27,31 +26,25 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 29,
+				"line" : 28,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 42,
+				"line" : 41,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 48,
+				"line" : 32,
 				"parent" : 0
 			},
 			{
-				"command" : 3,
+				"command" : 2,
 				"file" : 0,
-				"line" : 33,
-				"parent" : 0
-			},
-			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 37,
+				"line" : 36,
 				"parent" : 0
 			}
 		]
@@ -65,17 +58,13 @@
 					"fragment" : "-g --generate-code=arch=compute_86,code=[compute_86,sm_86]"
 				},
 				{
-					"backtrace" : 3,
-					"fragment" : "-Xcompiler=-fopenmp"
-				},
-				{
 					"fragment" : "-std=c++17"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"path" : "/home/yifanliang219/cuda_test/include"
 				},
 				{
@@ -83,12 +72,12 @@
 					"path" : "/home/yifanliang219/cuda_test/include/third_party/cnpy"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 4,
 					"isSystem" : true,
 					"path" : "/home/yifanliang219/cuda_test/include/third_party/stb_image"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 4,
 					"isSystem" : true,
 					"path" : "/usr/include/eigen3"
 				}
@@ -139,14 +128,6 @@
 			{
 				"backtrace" : 2,
 				"fragment" : "libcnpy.a",
-				"role" : "libraries"
-			},
-			{
-				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so",
-				"role" : "libraries"
-			},
-			{
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libpthread.a",
 				"role" : "libraries"
 			},
 			{

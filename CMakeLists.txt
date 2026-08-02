@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-find_package(OpenMP REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -40,13 +39,8 @@ target_include_directories(main SYSTEM PRIVATE
 )
 
 target_link_libraries(main PRIVATE
-    OpenMP::OpenMP_CXX
     cnpy
     Eigen3::Eigen
-)
-
-target_compile_options(main PRIVATE
-    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fopenmp>
 )
 
 set_target_properties(main PROPERTIES
