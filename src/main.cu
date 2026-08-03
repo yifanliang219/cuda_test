@@ -23,11 +23,23 @@ void loadMatrices(vector<float> &A, vector<float> &B, vector<float> &C)
     C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
 }
 
-bool checkEqual(PolicyIteration iter1, PolicyIteration iter2)
+bool checkSamePolicy(PolicyIteration iter1, PolicyIteration iter2)
 {
     for (size_t i = 0; i < iter1.state_values.size(); i++)
     {
-        if (fabs(iter1.state_values[i] - iter2.state_values[i]) > 0.0001f || (iter1.policy[i] != iter2.policy[i]))
+        if (iter1.policy[i] != iter2.policy[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool checkSameValues(PolicyIteration iter1, PolicyIteration iter2)
+{
+    for (size_t i = 0; i < iter1.state_values.size(); i++)
+    {
+        if (fabs(iter1.state_values[i] - iter2.state_values[i]) > 0.0001f)
         {
             return false;
         }
@@ -46,10 +58,19 @@ int main(int argc, char *argv[])
     // const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
     // const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
 
-    // vector<MDP> mdps = generate_random_MDPs(1, 50960, 64, 0.95f, 123);
-    // save_mdp(mdps[0], "data/50960_64.npz");
+    // vector<MDP> mdps = generate_random_MDPs(1, 4096, 64, 0.95f, 123);
+    // save_mdp(mdps[0], "data/4096_64.npz");
 
-    MDP loaded = load_mdp("data/5096_16.npz");
+    string num_states = "4096";
+    string num_actions = "16";
+    if (argc >= 2)
+        num_states = argv[1];
+    if (argc >= 3)
+        num_actions = argv[2];
+
+    string mdp_file = num_states + "_" + num_actions;
+
+    MDP loaded = load_mdp("data/" + mdp_file + ".npz");
     // // print_MDP(mdps[0]);
 
     cudaFree(0);
@@ -77,7 +98,9 @@ int main(int argc, char *argv[])
 
     cout << "cpu time: " << cpu_time << ", cpu BiCGSTAB time: " << cpu_BiCGSTAB_time << ", gpu better time: " << gpu_better_time << endl;
 
-    cout << "same policy and same values: " << (checkEqual(iter_cpu, iter_BiCGSTAB_cpu) && checkEqual(iter_cpu, iter_better_gpu)) << endl;
+    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_BiCGSTAB_cpu) && checkSamePolicy(iter_cpu, iter_better_gpu)) << endl;
+
+    cout << "same values: " << (checkSameValues(iter_cpu, iter_BiCGSTAB_cpu) && checkSameValues(iter_cpu, iter_better_gpu)) << endl;
 
     cout << "converged: " << iter_cpu.converged << ", " << iter_BiCGSTAB_cpu.converged << ", " << iter_better_gpu.converged << endl;
 
