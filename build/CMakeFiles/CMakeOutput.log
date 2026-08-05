@@ -887,3 +887,39 @@ Parsed CXX OpenMP implicit link information from above output:
   implicit fwks: []
 
 
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/yifanliang219/cuda_test/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_76010 && [1/2] Building CXX object CMakeFiles/cmTC_76010.dir/CheckIncludeFile.cxx.o
+[2/2] Linking CXX executable cmTC_76010
+
+
+
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD succeeded with the following output:
+Change Dir: /home/yifanliang219/cuda_test/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_d62fc && [1/2] Building CXX object CMakeFiles/cmTC_d62fc.dir/src.cxx.o
+[2/2] Linking CXX executable cmTC_d62fc
+
+
+Source file was:
+#include <pthread.h>
+
+static void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_cancel(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+

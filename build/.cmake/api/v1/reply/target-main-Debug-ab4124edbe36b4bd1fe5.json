@@ -26,25 +26,25 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 28,
+				"line" : 29,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 41,
+				"line" : 42,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 32,
+				"line" : 33,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 36,
+				"line" : 37,
 				"parent" : 0
 			}
 		]
@@ -80,6 +80,11 @@
 					"backtrace" : 4,
 					"isSystem" : true,
 					"path" : "/usr/include/eigen3"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/usr/local/cuda-13.2/include"
 				}
 			],
 			"language" : "CUDA",
@@ -126,12 +131,35 @@
 				"role" : "libraryPath"
 			},
 			{
+				"fragment" : "-Wl,-rpath,/usr/local/cuda-13.2/lib64",
+				"role" : "libraries"
+			},
+			{
 				"backtrace" : 2,
 				"fragment" : "libcnpy.a",
 				"role" : "libraries"
 			},
 			{
+				"backtrace" : 2,
+				"fragment" : "/usr/local/cuda-13.2/lib64/libcudart.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/local/cuda-13.2/lib64/libcusolver.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/local/cuda-13.2/lib64/libcublas.so",
+				"role" : "libraries"
+			},
+			{
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libz.so",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "/usr/local/cuda-13.2/lib64/libcusparse.so",
 				"role" : "libraries"
 			},
 			{

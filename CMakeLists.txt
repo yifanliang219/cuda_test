@@ -10,6 +10,7 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 find_package(ZLIB REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
 get_target_property(EIGEN_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
 
@@ -41,6 +42,9 @@ target_include_directories(main SYSTEM PRIVATE
 target_link_libraries(main PRIVATE
     cnpy
     Eigen3::Eigen
+    CUDA::cudart
+    CUDA::cusolver
+    CUDA::cublas
 )
 
 set_target_properties(main PROPERTIES

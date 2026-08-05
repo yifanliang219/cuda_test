@@ -83,26 +83,26 @@ int main(int argc, char *argv[])
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
-    // cudaDeviceSynchronize();
-    double cpu_BiCGSTAB_time = tim.lap_ms();
+    PolicyIteration iter_LU_gpu = policy_iter_matrix_dense_LU_gpu(loaded);
+    cudaDeviceSynchronize();
+    double gpu_dense_LU_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_better_gpu = policy_iter_gpu_better(loaded, 1e-6f);
+    PolicyIteration iter_FP_gpu = policy_iter_gpu_better(loaded, 1e-6f);
     cudaDeviceSynchronize();
-    double gpu_better_time = tim.lap_ms();
+    double gpu_FP_time = tim.lap_ms();
 
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", cpu BiCGSTAB time: " << cpu_BiCGSTAB_time << ", gpu better time: " << gpu_better_time << endl;
+    cout << "cpu time: " << cpu_time << ", gpu dense LU time: " << gpu_dense_LU_time << ", gpu FP time: " << gpu_FP_time << endl;
 
-    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_BiCGSTAB_cpu) && checkSamePolicy(iter_cpu, iter_better_gpu)) << endl;
+    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_LU_gpu) && checkSamePolicy(iter_cpu, iter_FP_gpu)) << endl;
 
-    cout << "same values: " << (checkSameValues(iter_cpu, iter_BiCGSTAB_cpu) && checkSameValues(iter_cpu, iter_better_gpu)) << endl;
+    cout << "same values: " << (checkSameValues(iter_cpu, iter_LU_gpu) && checkSameValues(iter_cpu, iter_FP_gpu)) << endl;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_BiCGSTAB_cpu.converged << ", " << iter_better_gpu.converged << endl;
+    cout << "converged: " << iter_cpu.converged << ", " << iter_LU_gpu.converged << ", " << iter_FP_gpu.converged << endl;
 
     return 0;
 }
