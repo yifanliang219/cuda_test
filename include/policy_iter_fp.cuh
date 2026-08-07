@@ -224,7 +224,7 @@ bool policy_improvement_gpu(const MDP &mdp, vector<size_t> &policy, const vector
     return (not_converged_h == 0) ? true : false;
 }
 
-PolicyIteration policy_iter_cpu(const MDP &mdp, float tolerance)
+PolicyIteration policy_iter_FP_cpu(const MDP &mdp, float tolerance)
 {
     PolicyIteration iter = {vector<size_t>(mdp.num_states, 0), vector<float>(mdp.num_states, 0.0f), false, 0};
     for (int i = 0; i < 10000; i++)

@@ -78,6 +78,23 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
 
                 for (size_t i = 0; i < num_successors; i++)
                 {
+                    size_t candidate;
+                    bool duplicate;
+                    do
+                    {
+                        candidate = state_dist(rng);
+                        duplicate = false;
+
+                        for (size_t j = 0; j < i; j++)
+                        {
+                            if (sampled_states[j] == candidate)
+                            {
+                                duplicate = true;
+                                break;
+                            }
+                        }
+
+                    } while (duplicate);
                     sampled_states[i] = state_dist(rng);
                 }
 

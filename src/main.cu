@@ -47,20 +47,22 @@ bool checkSameValues(PolicyIteration iter1, PolicyIteration iter2)
     return true;
 }
 
-int main(int argc, char *argv[])
+void generate_all_test_mdps()
 {
+    vector<int> num_states = {4096, 40960, 409600};
+    vector<int> num_actions = {16, 64};
+    for (int s : num_states)
+    {
+        for (int a : num_actions)
+        {
+            string path = "data/" + to_string(s) + "_" + to_string(a) + ".npz";
+            vector<MDP> mdps = generate_random_MDPs(1, s, a, 0.95f, 123);
+            save_mdp(mdps[0], path);
+        }
+    }
+}
 
-    // vector<float> A, B, C;
-    // loadMatrices(A, B, C);
-
-    // const vector<float> A1(A.begin(), A.begin() + 512 * 512);
-    // const vector<float> B1(B.begin(), B.begin() + 512 * 512);
-    // const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
-    // const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
-
-    // vector<MDP> mdps = generate_random_MDPs(1, 4096, 64, 0.95f, 123);
-    // save_mdp(mdps[0], "data/4096_64.npz");
-
+void analysis(int argc, char *argv[]){
     string num_states = "4096";
     string num_actions = "16";
     if (argc >= 2)
@@ -78,14 +80,14 @@ int main(int argc, char *argv[])
     cx::timer tim;
 
     tim.start();
-    PolicyIteration iter_cpu = policy_iter_cpu(loaded, 1e-6f);
-    double cpu_time = tim.lap_ms();
+    PolicyIteration iter_cpu = policy_iter_FP_cpu(loaded, 1e-6f);
+    double cpu_FP_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_LU_gpu = policy_iter_matrix_dense_LU_gpu(loaded);
+    PolicyIteration iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
     cudaDeviceSynchronize();
-    double gpu_dense_LU_time = tim.lap_ms();
+    double gpu_BiCGSTAB_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
@@ -96,13 +98,32 @@ int main(int argc, char *argv[])
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_time << ", gpu dense LU time: " << gpu_dense_LU_time << ", gpu FP time: " << gpu_FP_time << endl;
+    cout << "cpu time: " << cpu_FP_time << ", gpu BiCGSTAB time: " << gpu_BiCGSTAB_time << ", gpu FP time: " << gpu_FP_time << endl;
 
-    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_LU_gpu) && checkSamePolicy(iter_cpu, iter_FP_gpu)) << endl;
+    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_BiCGSTAB_gpu) && checkSamePolicy(iter_cpu, iter_FP_gpu)) << endl;
 
-    cout << "same values: " << (checkSameValues(iter_cpu, iter_LU_gpu) && checkSameValues(iter_cpu, iter_FP_gpu)) << endl;
+    cout << "same values: " << (checkSameValues(iter_cpu, iter_BiCGSTAB_gpu) && checkSameValues(iter_cpu, iter_FP_gpu)) << endl;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_LU_gpu.converged << ", " << iter_FP_gpu.converged << endl;
+    cout << "converged: " << iter_cpu.converged << ", " << iter_BiCGSTAB_gpu.converged << ", " << iter_FP_gpu.converged << endl;
+}
+
+int main(int argc, char *argv[])
+{
+
+    // vector<float> A, B, C;
+    // loadMatrices(A, B, C);
+
+    // const vector<float> A1(A.begin(), A.begin() + 512 * 512);
+    // const vector<float> B1(B.begin(), B.begin() + 512 * 512);
+    // const vector<float> C_cuda = singleMatrixMul(A1, B1, 512);
+    // const vector<float> C_eigen = eigenRefMatrixMul(A1, B1, 1, 512);
+
+    // vector<MDP> mdps = generate_random_MDPs(1, 4096, 64, 0.95f, 123);
+    // save_mdp(mdps[0], "data/4096_64.npz");
+
+    //generate_all_test_mdps();
+
+    analysis(argc, argv);
 
     return 0;
 }

@@ -8,6 +8,7 @@
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
 #include <cublas_v2.h>
+#include "bicgstab_cuda.cuh"
 
 using namespace std;
 
@@ -360,3 +361,4 @@ PolicyIteration policy_iter_matrix_dense_LU_gpu(const MDP &mdp)
 
     return iter;
 }
+
