@@ -362,6 +362,12 @@ CUDA_nvml_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libnvidia-ml.so
 //Path to a library.
 CUDA_nvrtc_LIBRARY:FILEPATH=/usr/local/cuda-13.2/lib64/libnvrtc.so
 
+//Path to a file.
+CUDSS_INCLUDE_DIR:PATH=/usr/include/libcudss/13
+
+//Path to a library.
+CUDSS_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libcudss/13/libcudss.so
+
 //Value Computed by CMake
 CudaProject_BINARY_DIR:STATIC=/home/yifanliang219/cuda_test/build
 
@@ -394,6 +400,12 @@ ZLIB_LIBRARY_DEBUG:FILEPATH=ZLIB_LIBRARY_DEBUG-NOTFOUND
 
 //Path to a library.
 ZLIB_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libz.so
+
+//The directory containing a CMake configuration file for cudss.
+cudss_DIR:PATH=/usr/lib/x86_64-linux-gnu/libcudss/13/cmake/cudss
+
+//Location of  libraries
+cudss_LIBRARY_DIR:PATH=/usr/lib/x86_64-linux-gnu/libcudss/13/.
 
 
 ########################

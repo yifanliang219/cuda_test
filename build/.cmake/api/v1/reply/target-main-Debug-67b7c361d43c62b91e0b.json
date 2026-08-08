@@ -26,25 +26,25 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 29,
+				"line" : 39,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 42,
+				"line" : 52,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 33,
+				"line" : 43,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 37,
+				"line" : 47,
 				"parent" : 0
 			}
 		]
@@ -85,6 +85,11 @@
 					"backtrace" : 2,
 					"isSystem" : true,
 					"path" : "/usr/local/cuda-13.2/include"
+				},
+				{
+					"backtrace" : 2,
+					"isSystem" : true,
+					"path" : "/usr/include/libcudss/13"
 				}
 			],
 			"language" : "CUDA",
@@ -131,7 +136,7 @@
 				"role" : "libraryPath"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/usr/local/cuda-13.2/lib64",
+				"fragment" : "-Wl,-rpath,/usr/local/cuda-13.2/lib64:/usr/lib/x86_64-linux-gnu/libcudss/13",
 				"role" : "libraries"
 			},
 			{
@@ -152,6 +157,11 @@
 			{
 				"backtrace" : 2,
 				"fragment" : "/usr/local/cuda-13.2/lib64/libcublas.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libcudss/13/libcudss.so",
 				"role" : "libraries"
 			},
 			{

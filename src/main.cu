@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <iomanip>
 #include "cxtimers.h"
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
@@ -85,9 +86,13 @@ void analysis(int argc, char *argv[]){
 
     tim.reset();
     tim.start();
-    PolicyIteration iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
-    cudaDeviceSynchronize();
-    double gpu_BiCGSTAB_time = tim.lap_ms();
+    PolicyIteration iter_matrix_sparse_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
+    double cpu_matrix_sparse_LU_time = tim.lap_ms();
+    
+    tim.reset();
+    tim.start();
+    PolicyIteration iter_matrix_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
+    double cpu_matrix_BiCGSTAB_time = tim.lap_ms();
 
     tim.reset();
     tim.start();
@@ -95,16 +100,63 @@ void analysis(int argc, char *argv[]){
     cudaDeviceSynchronize();
     double gpu_FP_time = tim.lap_ms();
 
+    tim.reset();
+    tim.start();
+    PolicyIteration iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
+    cudaDeviceSynchronize();
+    double gpu_BiCGSTAB_time = tim.lap_ms();
+
+    
+
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
 
-    cout << "cpu time: " << cpu_FP_time << ", gpu BiCGSTAB time: " << gpu_BiCGSTAB_time << ", gpu FP time: " << gpu_FP_time << endl;
+    struct ResultRow
+    {
+        string name;
+        const PolicyIteration *iter;
+        double time_ms;
+    };
 
-    cout << "same policy: " << (checkSamePolicy(iter_cpu, iter_BiCGSTAB_gpu) && checkSamePolicy(iter_cpu, iter_FP_gpu)) << endl;
+    vector<ResultRow> results = {
+        {"CPU Fixed-Point", &iter_cpu, cpu_FP_time},
+        {"CPU Sparse LU", &iter_matrix_sparse_LU_cpu, cpu_matrix_sparse_LU_time},
+        {"CPU Sparse BiCGSTAB", &iter_matrix_BiCGSTAB_cpu, cpu_matrix_BiCGSTAB_time},
+        {"GPU Fixed-Point", &iter_FP_gpu, gpu_FP_time},
+        {"GPU Sparse BiCGSTAB", &iter_BiCGSTAB_gpu, gpu_BiCGSTAB_time},
+    };
 
-    cout << "same values: " << (checkSameValues(iter_cpu, iter_BiCGSTAB_gpu) && checkSameValues(iter_cpu, iter_FP_gpu)) << endl;
+    const PolicyIteration &baseline = iter_cpu;
 
-    cout << "converged: " << iter_cpu.converged << ", " << iter_BiCGSTAB_gpu.converged << ", " << iter_FP_gpu.converged << endl;
+    const int nameWidth = 22, numWidth = 12, boolWidth = 13;
+    const int totalWidth = nameWidth + numWidth + numWidth + boolWidth + boolWidth + boolWidth;
+
+    cout << "\n"
+         << string(totalWidth, '=') << "\n";
+    cout << left << setw(nameWidth) << "Method"
+         << right << setw(numWidth) << "Time (ms)"
+         << setw(numWidth) << "Iterations"
+         << setw(boolWidth) << "Converged"
+         << setw(boolWidth) << "Same Policy"
+         << setw(boolWidth) << "Same Values" << "\n";
+    cout << string(totalWidth, '-') << "\n";
+
+    cout << fixed << setprecision(3);
+    for (const ResultRow &row : results)
+    {
+        bool isBaseline = (row.iter == &baseline);
+        string samePolicy = isBaseline ? "-" : (checkSamePolicy(baseline, *row.iter) ? "yes" : "NO");
+        string sameValues = isBaseline ? "-" : (checkSameValues(baseline, *row.iter) ? "yes" : "NO");
+
+        cout << left << setw(nameWidth) << row.name
+             << right << setw(numWidth) << row.time_ms
+             << setw(numWidth) << row.iter->num_iterations
+             << setw(boolWidth) << (row.iter->converged ? "yes" : "NO")
+             << setw(boolWidth) << samePolicy
+             << setw(boolWidth) << sameValues << "\n";
+    }
+    cout << string(totalWidth, '=') << "\n"
+         << endl;
 }
 
 int main(int argc, char *argv[])

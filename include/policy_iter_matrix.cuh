@@ -1,7 +1,5 @@
 #pragma once
-
 #include <stdio.h>
-#include "cuda_runtime.h"
 #include <vector>
 #include "mdp_csr.h"
 #include "matrix_lib.h"
@@ -12,7 +10,7 @@
 
 using namespace std;
 
-void generate_matrix_A_and_vector_R_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &A, vector<float> &R)
+void generate_matrix_dense_A_and_vector_R_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &A, vector<float> &R)
 {
     size_t n = mdp.num_states;
 
@@ -41,11 +39,11 @@ void generate_matrix_A_and_vector_R_cpu(const MDP &mdp, const vector<size_t> &po
     }
 }
 
-void policy_eval_matrix_LU_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &state_values, vector<float> &A, vector<float> &R)
+void policy_eval_matrix_dense_LU_cpu(const MDP &mdp, const vector<size_t> &policy, vector<float> &state_values, vector<float> &A, vector<float> &R)
 {
     size_t n = mdp.num_states;
 
-    generate_matrix_A_and_vector_R_cpu(mdp, policy, A, R);
+    generate_matrix_dense_A_and_vector_R_cpu(mdp, policy, A, R);
 
     using RowMajorMatrixXf =
         Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -57,7 +55,7 @@ void policy_eval_matrix_LU_cpu(const MDP &mdp, const vector<size_t> &policy, vec
     V_eigen = A_eigen.partialPivLu().solve(R_eigen);
 }
 
-PolicyIteration policy_iter_matrix_LU_cpu(const MDP &mdp)
+PolicyIteration policy_iter_matrix_dense_LU_cpu(const MDP &mdp)
 {
     size_t n = mdp.num_states;
     PolicyIteration iter = {vector<size_t>(n, 0), vector<float>(n, 0.0f), false, 0};
@@ -68,7 +66,7 @@ PolicyIteration policy_iter_matrix_LU_cpu(const MDP &mdp)
     {
         iter.num_iterations++;
         cout << "policy iteration CPU LU loop " << iter.num_iterations << endl;
-        policy_eval_matrix_LU_cpu(mdp, iter.policy, iter.state_values, A, R);
+        policy_eval_matrix_dense_LU_cpu(mdp, iter.policy, iter.state_values, A, R);
 
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
@@ -183,13 +181,13 @@ PolicyIteration policy_iter_matrix_BiCGSTAB_cpu(const MDP &mdp, float tolerance)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
-        cout << "policy iteration CPU BiCGSTAB loop " << iter.num_iterations << endl;
+        // cout << "policy iteration CPU BiCGSTAB loop " << iter.num_iterations << endl;
         policy_eval_matrix_BiCGSTAB_cpu(mdp, iter.policy, iter.state_values, A, R, triplets, solver);
 
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
-            cout << "policy iteration CPU BiCGSTAB completed successfully." << endl;
+            // cout << "policy iteration CPU BiCGSTAB completed successfully." << endl;
             break;
         }
     }
@@ -361,4 +359,3 @@ PolicyIteration policy_iter_matrix_dense_LU_gpu(const MDP &mdp)
 
     return iter;
 }
-

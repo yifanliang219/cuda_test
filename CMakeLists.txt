@@ -11,6 +11,16 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 find_package(ZLIB REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(CUDAToolkit REQUIRED)
+find_path(CUDSS_INCLUDE_DIR NAMES cudss.h PATHS /usr/include/libcudss/13)
+find_library(CUDSS_LIBRARY NAMES cudss PATHS /usr/lib/x86_64-linux-gnu/libcudss/13)
+if(NOT CUDSS_INCLUDE_DIR OR NOT CUDSS_LIBRARY)
+    message(FATAL_ERROR "cuDSS not found (looked for cudss.h and libcudss.so under libcudss/13)")
+endif()
+add_library(cudss SHARED IMPORTED)
+set_target_properties(cudss PROPERTIES
+    IMPORTED_LOCATION ${CUDSS_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${CUDSS_INCLUDE_DIR}
+)
 
 get_target_property(EIGEN_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
 
@@ -45,6 +55,7 @@ target_link_libraries(main PRIVATE
     CUDA::cudart
     CUDA::cusolver
     CUDA::cublas
+    cudss
 )
 
 set_target_properties(main PROPERTIES

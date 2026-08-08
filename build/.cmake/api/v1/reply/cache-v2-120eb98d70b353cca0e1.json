@@ -1966,6 +1966,30 @@
 			"value" : "/usr/local/cuda-13.2/lib64/libnvrtc.so"
 		},
 		{
+			"name" : "CUDSS_INCLUDE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a file."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/include/libcudss/13"
+		},
+		{
+			"name" : "CUDSS_LIBRARY",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Path to a library."
+				}
+			],
+			"type" : "FILEPATH",
+			"value" : "/usr/lib/x86_64-linux-gnu/libcudss/13/libcudss.so"
+		},
+		{
 			"name" : "CudaProject_BINARY_DIR",
 			"properties" : 
 			[
@@ -2220,6 +2244,30 @@
 			],
 			"type" : "FILEPATH",
 			"value" : "/usr/lib/x86_64-linux-gnu/libz.so"
+		},
+		{
+			"name" : "cudss_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for cudss."
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/lib/x86_64-linux-gnu/libcudss/13/cmake/cudss"
+		},
+		{
+			"name" : "cudss_LIBRARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Location of  libraries"
+				}
+			],
+			"type" : "PATH",
+			"value" : "/usr/lib/x86_64-linux-gnu/libcudss/13/."
 		}
 	],
 	"kind" : "cache",

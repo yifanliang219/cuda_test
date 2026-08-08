@@ -377,7 +377,7 @@ PolicyIteration policy_iter_matrix_sparse_BiCGSTAB_gpu(const MDP &mdp, float tol
     {
         iter.num_iterations++;
 
-        cout << "policy iteration GPU sparse BiCGSTAB loop " << iter.num_iterations << endl;
+        //cout << "policy iteration GPU sparse BiCGSTAB loop " << iter.num_iterations << endl;
 
         bool eval_converged = policy_eval_matrix_sparse_BiCGSTAB_gpu(mdp, iter.policy, iter.state_values, policy_d, A_row_ptr_d, A_col_ind_d, A_values_d, R_d, V_d, prob_d, reward_d, next_state_d, mdp_row_ptr_d, cusparse_handle, cublas_handle, r_d, r_hat_d, p_d, v_d, s_d, t_d, Ax_d, tolerance);
 
@@ -389,7 +389,7 @@ PolicyIteration policy_iter_matrix_sparse_BiCGSTAB_gpu(const MDP &mdp, float tol
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
-            cout << "policy iteration GPU sparse BiCGSTAB completed successfully." << endl;
+            //cout << "policy iteration GPU sparse BiCGSTAB completed successfully." << endl;
             break;
         }
     }

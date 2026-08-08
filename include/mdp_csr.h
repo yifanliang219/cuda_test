@@ -95,7 +95,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
                         }
 
                     } while (duplicate);
-                    sampled_states[i] = state_dist(rng);
+                    sampled_states[i] = candidate;
                 }
 
                 array<float, 3> weights;
