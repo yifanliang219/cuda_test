@@ -63,7 +63,8 @@ void generate_all_test_mdps()
     }
 }
 
-void analysis(int argc, char *argv[]){
+void analysis(int argc, char *argv[])
+{
     string num_states = "4096";
     string num_actions = "16";
     if (argc >= 2)
@@ -84,11 +85,15 @@ void analysis(int argc, char *argv[]){
     PolicyIteration iter_cpu = policy_iter_FP_cpu(loaded, 1e-6f);
     double cpu_FP_time = tim.lap_ms();
 
+    // tim.reset();
+    // tim.start();
+    // PolicyIteration iter_matrix_sparse_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
+    // double cpu_matrix_sparse_LU_time = tim.lap_ms();
     tim.reset();
     tim.start();
-    PolicyIteration iter_matrix_sparse_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
-    double cpu_matrix_sparse_LU_time = tim.lap_ms();
-    
+    PolicyIteration iter_matrix_custom_sparse_LU_cpu = policy_iter_matrix_custom_sparse_LU_cpu(loaded);
+    double cpu_matrix_custom_sparse_LU_time = tim.lap_ms();
+
     tim.reset();
     tim.start();
     PolicyIteration iter_matrix_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
@@ -100,13 +105,17 @@ void analysis(int argc, char *argv[]){
     cudaDeviceSynchronize();
     double gpu_FP_time = tim.lap_ms();
 
+    // tim.reset();
+    // tim.start();
+    // PolicyIteration iter_matrix_sparse_LU_gpu = policy_iter_matrix_sparse_LU_gpu(loaded);
+    // cudaDeviceSynchronize();
+    // double gpu_sparse_LU_time = tim.lap_ms();
+
     tim.reset();
     tim.start();
     PolicyIteration iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
     cudaDeviceSynchronize();
     double gpu_BiCGSTAB_time = tim.lap_ms();
-
-    
 
     // printPolicyIter(iter_cpu);
     // printPolicyIter(iter_gpu);
@@ -120,9 +129,11 @@ void analysis(int argc, char *argv[]){
 
     vector<ResultRow> results = {
         {"CPU Fixed-Point", &iter_cpu, cpu_FP_time},
-        {"CPU Sparse LU", &iter_matrix_sparse_LU_cpu, cpu_matrix_sparse_LU_time},
+        //{"CPU Sparse LU", &iter_matrix_sparse_LU_cpu, cpu_matrix_sparse_LU_time},
+        {"CPU Custom Sparse LU", &iter_matrix_custom_sparse_LU_cpu, cpu_matrix_custom_sparse_LU_time},
         {"CPU Sparse BiCGSTAB", &iter_matrix_BiCGSTAB_cpu, cpu_matrix_BiCGSTAB_time},
         {"GPU Fixed-Point", &iter_FP_gpu, gpu_FP_time},
+        //{"GPU Sparse LU", &iter_matrix_sparse_LU_gpu, gpu_sparse_LU_time},
         {"GPU Sparse BiCGSTAB", &iter_BiCGSTAB_gpu, gpu_BiCGSTAB_time},
     };
 
@@ -173,7 +184,7 @@ int main(int argc, char *argv[])
     // vector<MDP> mdps = generate_random_MDPs(1, 4096, 64, 0.95f, 123);
     // save_mdp(mdps[0], "data/4096_64.npz");
 
-    //generate_all_test_mdps();
+    // generate_all_test_mdps();
 
     analysis(argc, argv);
 
