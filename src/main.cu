@@ -24,7 +24,7 @@ void loadMatrices(vector<float> &A, vector<float> &B, vector<float> &C)
     C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
 }
 
-bool checkSamePolicy(PolicyIteration iter1, PolicyIteration iter2)
+bool checkSamePolicy(const PolicyIteration &iter1, const PolicyIteration &iter2)
 {
     for (size_t i = 0; i < iter1.state_values.size(); i++)
     {
@@ -36,7 +36,7 @@ bool checkSamePolicy(PolicyIteration iter1, PolicyIteration iter2)
     return true;
 }
 
-bool checkSameValues(PolicyIteration iter1, PolicyIteration iter2)
+bool checkSameValues(const PolicyIteration &iter1, const PolicyIteration &iter2)
 {
     for (size_t i = 0; i < iter1.state_values.size(); i++)
     {
@@ -96,10 +96,12 @@ vector<string> LU_algs = {
     "GPU Sparse LU"};
 
 vector<string> library_LU_algs = {
+    "GPU Fixed-Point",
     "CPU Sparse LU",
     "GPU Sparse LU"};
 
 vector<string> gpu_LU_algs = {
+    "GPU Fixed-Point",
     "GPU Sparse LU"};
 
 void analysis(int argc, char *argv[], vector<string> algs)
@@ -167,17 +169,21 @@ void analysis(int argc, char *argv[], vector<string> algs)
 
         cout << fixed << setprecision(3);
 
-        for (const AvgResultRow &row : results)
+        for (size_t j = 0; j < results.size(); j++)
         {
-            double avg_time = row.total_time_ms / completed;
-            double avg_iterations = static_cast<double>(row.total_iterations) / completed;
+            const AvgResultRow &row = results[j];
+
+            double avg_time = row.converged_count > 0 ? row.total_time_ms / row.converged_count : 0.0;
+            double avg_iterations = row.converged_count > 0 ? static_cast<double>(row.total_iterations) / row.converged_count : 0.0;
+
+            bool is_baseline = (j == 0);
 
             cout << left << setw(nameWidth) << row.name
                  << right << setw(numWidth) << avg_time
                  << setw(numWidth) << avg_iterations
                  << setw(countWidth) << (to_string(row.converged_count) + "/" + to_string(completed))
-                 << setw(countWidth) << (to_string(row.same_policy_count) + "/" + to_string(completed))
-                 << setw(countWidth) << (to_string(row.same_values_count) + "/" + to_string(completed))
+                 << setw(countWidth) << (is_baseline ? "-" : (to_string(row.same_policy_count) + "/" + to_string(completed)))
+                 << setw(countWidth) << (is_baseline ? "-" : (to_string(row.same_values_count) + "/" + to_string(completed)))
                  << "\n";
         }
 
@@ -188,6 +194,8 @@ void analysis(int argc, char *argv[], vector<string> algs)
 
     for (int i = 0; i < num_mdps; i++)
     {
+        run_results.clear();
+
         string path = folder + "/" + state_action + "_" + to_string(i) + ".npz";
 
         cout << "\nRunning MDP " << i << ": " << path << endl;
@@ -196,11 +204,21 @@ void analysis(int argc, char *argv[], vector<string> algs)
 
         cx::timer tim;
 
+        // Declared here (not inside the ifs below) so each object outlives the
+        // comparison/accumulation loop that reads run_results via pointer.
+        PolicyIteration iter_cpu;
+        PolicyIteration iter_matrix_sparse_LU_cpu;
+        PolicyIteration iter_matrix_custom_sparse_LU_cpu;
+        PolicyIteration iter_matrix_BiCGSTAB_cpu;
+        PolicyIteration iter_FP_gpu;
+        PolicyIteration iter_matrix_sparse_LU_gpu;
+        PolicyIteration iter_BiCGSTAB_gpu;
+
         if (contains(algs, "CPU Fixed-Point"))
         {
             tim.reset();
             tim.start();
-            PolicyIteration iter_cpu = policy_iter_FP_cpu(loaded, 1e-6f);
+            iter_cpu = policy_iter_FP_cpu(loaded, 1e-6f);
             double cpu_FP_time = tim.lap_ms();
             run_results.push_back({"CPU Fixed-Point", &iter_cpu, cpu_FP_time});
         }
@@ -209,7 +227,7 @@ void analysis(int argc, char *argv[], vector<string> algs)
         {
             tim.reset();
             tim.start();
-            PolicyIteration iter_matrix_sparse_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
+            iter_matrix_sparse_LU_cpu = policy_iter_matrix_sparse_LU_cpu(loaded);
             double cpu_matrix_sparse_LU_time = tim.lap_ms();
             run_results.push_back({"CPU Sparse LU", &iter_matrix_sparse_LU_cpu, cpu_matrix_sparse_LU_time});
         }
@@ -218,7 +236,7 @@ void analysis(int argc, char *argv[], vector<string> algs)
         {
             tim.reset();
             tim.start();
-            PolicyIteration iter_matrix_custom_sparse_LU_cpu = policy_iter_matrix_custom_sparse_LU_cpu(loaded);
+            iter_matrix_custom_sparse_LU_cpu = policy_iter_matrix_custom_sparse_LU_cpu(loaded);
             double cpu_matrix_custom_sparse_LU_time = tim.lap_ms();
             run_results.push_back({"CPU Custom Sparse LU", &iter_matrix_custom_sparse_LU_cpu, cpu_matrix_custom_sparse_LU_time});
         }
@@ -227,7 +245,7 @@ void analysis(int argc, char *argv[], vector<string> algs)
         {
             tim.reset();
             tim.start();
-            PolicyIteration iter_matrix_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
+            iter_matrix_BiCGSTAB_cpu = policy_iter_matrix_BiCGSTAB_cpu(loaded, 1e-6f);
             double cpu_matrix_BiCGSTAB_time = tim.lap_ms();
             run_results.push_back({"CPU Sparse BiCGSTAB", &iter_matrix_BiCGSTAB_cpu, cpu_matrix_BiCGSTAB_time});
         }
@@ -237,7 +255,7 @@ void analysis(int argc, char *argv[], vector<string> algs)
             cudaDeviceSynchronize();
             tim.reset();
             tim.start();
-            PolicyIteration iter_FP_gpu = policy_iter_gpu_better(loaded, 1e-6f);
+            iter_FP_gpu = policy_iter_gpu_better(loaded, 1e-6f);
             cudaDeviceSynchronize();
             double gpu_FP_time = tim.lap_ms();
             run_results.push_back({"GPU Fixed-Point", &iter_FP_gpu, gpu_FP_time});
@@ -245,13 +263,24 @@ void analysis(int argc, char *argv[], vector<string> algs)
 
         if (contains(algs, "GPU Sparse LU"))
         {
+            size_t free_before, total_before;
+            cudaMemGetInfo(&free_before, &total_before);
+
             cudaDeviceSynchronize();
             tim.reset();
             tim.start();
-            PolicyIteration iter_matrix_sparse_LU_gpu = policy_iter_matrix_sparse_LU_gpu(loaded);
+            iter_matrix_sparse_LU_gpu = policy_iter_matrix_sparse_LU_gpu(loaded);
             cudaDeviceSynchronize();
             double gpu_sparse_LU_time = tim.lap_ms();
             run_results.push_back({"GPU Sparse LU", &iter_matrix_sparse_LU_gpu, gpu_sparse_LU_time});
+
+            size_t free_after, total_after;
+            cudaMemGetInfo(&free_after, &total_after);
+            cout << "[DEBUG GPU Sparse LU] MDP " << i << ": time=" << gpu_sparse_LU_time
+                 << "ms iters=" << iter_matrix_sparse_LU_gpu.num_iterations
+                 << " converged=" << iter_matrix_sparse_LU_gpu.converged
+                 << " free_before=" << (free_before / (1024 * 1024)) << "MB"
+                 << " free_after=" << (free_after / (1024 * 1024)) << "MB" << endl;
         }
 
         if (contains(algs, "GPU Sparse BiCGSTAB"))
@@ -259,7 +288,7 @@ void analysis(int argc, char *argv[], vector<string> algs)
             cudaDeviceSynchronize();
             tim.reset();
             tim.start();
-            PolicyIteration iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
+            iter_BiCGSTAB_gpu = policy_iter_matrix_sparse_BiCGSTAB_gpu(loaded, 1e-6f);
             cudaDeviceSynchronize();
             double gpu_BiCGSTAB_time = tim.lap_ms();
             run_results.push_back({"GPU Sparse BiCGSTAB", &iter_BiCGSTAB_gpu, gpu_BiCGSTAB_time});
@@ -273,26 +302,34 @@ void analysis(int argc, char *argv[], vector<string> algs)
             }
         }
 
-        const PolicyIteration &baseline = *run_results[0].iter;
-
-        for (size_t j = 0; j < run_results.size(); j++)
+        if (!run_results.empty())
         {
-            results[j].total_time_ms += run_results[j].time_ms;
-            results[j].total_iterations += run_results[j].iter->num_iterations;
+            const PolicyIteration &baseline = *run_results[0].iter;
 
-            if (run_results[j].iter->converged)
+            for (size_t j = 0; j < run_results.size(); j++)
             {
-                results[j].converged_count++;
-            }
+                if (run_results[j].iter->converged)
+                {
+                    results[j].total_time_ms += run_results[j].time_ms;
+                    results[j].total_iterations += run_results[j].iter->num_iterations;
+                    results[j].converged_count++;
+                }
 
-            if (run_results[j].iter == &baseline || checkSamePolicy(baseline, *run_results[j].iter))
-            {
-                results[j].same_policy_count++;
-            }
+                if (j == 0)
+                {
+                    // Baseline row: comparing it against itself is trivial, so skip it.
+                    continue;
+                }
 
-            if (run_results[j].iter == &baseline || checkSameValues(baseline, *run_results[j].iter))
-            {
-                results[j].same_values_count++;
+                if (checkSamePolicy(baseline, *run_results[j].iter))
+                {
+                    results[j].same_policy_count++;
+                }
+
+                if (checkSameValues(baseline, *run_results[j].iter))
+                {
+                    results[j].same_values_count++;
+                }
             }
         }
 

@@ -446,7 +446,7 @@ PolicyIteration policy_iter_matrix_sparse_LU_gpu(const MDP &mdp)
     cudssCreate(&cudss_handle);
     cudssConfigCreate(&cudss_config);
 
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < 50; i++)
     {
         iter.num_iterations++;
 
