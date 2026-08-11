@@ -21,7 +21,7 @@ struct MDP
     vector<size_t> row_ptr;
 };
 
-vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, float gamma, int seed)
+vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, size_t max_successors, float gamma, int seed)
 {
     vector<MDP> mdps;
     mdps.reserve(number);
@@ -31,7 +31,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
     uniform_real_distribution<float> weight_dist(0.01f, 1.0f);
     uniform_real_distribution<float> reward_dist(-1.0f, 1.0f);
 
-    size_t max_num_next_states = std::min<size_t>(3, states);
+    size_t max_num_next_states = std::min<size_t>(max_successors, states);
     uniform_int_distribution<size_t> num_successors_dist(1, max_num_next_states);
     uniform_int_distribution<size_t> state_dist(0, states - 1);
 
@@ -74,7 +74,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
                 size_t begin = mdp.row_ptr[row];
                 mdp.row_ptr.push_back(begin + num_successors);
 
-                array<size_t, 3> sampled_states;
+                vector<size_t> sampled_states(num_successors);
 
                 for (size_t i = 0; i < num_successors; i++)
                 {
@@ -98,7 +98,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, f
                     sampled_states[i] = candidate;
                 }
 
-                array<float, 3> weights;
+                vector<float> weights(num_successors);
                 float total_weight = 0.0f;
 
                 for (size_t i = 0; i < num_successors; i++)
