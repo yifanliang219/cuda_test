@@ -1,44 +1,11 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <vector>
-#include "mdp_csr.h"
-#include <map>
+#include "policy_iter.h"
+#include "sparse_custom_common.h"
+#include "policy_improvement_cpu.h"
 
 using namespace std;
-
-using SparseRow = map<size_t, float>;
-using SparseMatrix = vector<SparseRow>;
-
-void generate_matrix_sparse_A_and_vector_R_cpu(const MDP &mdp, const vector<size_t> &policy, SparseMatrix &A, vector<float> &R)
-{
-    size_t n = mdp.num_states;
-
-    for (size_t s = 0; s < n; s++)
-        A[s].clear();
-
-    fill(R.begin(), R.end(), 0.0f);
-
-    for (size_t s = 0; s < n; s++)
-    {
-        A[s][s] = 1.0f;
-
-        size_t action = policy[s];
-        size_t row = s * mdp.num_actions + action;
-        size_t begin = mdp.row_ptr[row];
-        size_t end = mdp.row_ptr[row + 1];
-
-        for (size_t offset = begin; offset < end; offset++)
-        {
-            size_t next = mdp.next_state[offset];
-
-            float p = mdp.prob[offset];
-            float r = mdp.reward[offset];
-
-            A[s][next] += -mdp.gamma * p;
-            R[s] += p * r;
-        }
-    }
-}
 
 void custom_sparse_LU_factorisation_cpu(SparseMatrix &U, SparseMatrix &L, vector<size_t> &permutation)
 {
@@ -50,6 +17,8 @@ void custom_sparse_LU_factorisation_cpu(SparseMatrix &U, SparseMatrix &L, vector
         permutation[i] = i;
     }
 
+    vector<pair<size_t, float>> merged;
+
     for (size_t k = 0; k < n; k++)
     {
         size_t pivot_row = k;
@@ -57,7 +26,7 @@ void custom_sparse_LU_factorisation_cpu(SparseMatrix &U, SparseMatrix &L, vector
 
         for (size_t i = k; i < n; i++)
         {
-            auto it = U[i].find(k);
+            auto it = findInRow(U[i], k);
 
             if (it != U[i].end())
             {
@@ -78,11 +47,12 @@ void custom_sparse_LU_factorisation_cpu(SparseMatrix &U, SparseMatrix &L, vector
             swap(permutation[k], permutation[pivot_row]);
         }
 
-        float pivot = U[k].find(k)->second;
+        auto pivot_it = findInRow(U[k], k);
+        float pivot = pivot_it->second;
 
         for (size_t i = k + 1; i < n; i++)
         {
-            auto ik = U[i].find(k);
+            auto ik = findInRow(U[i], k);
 
             if (ik == U[i].end())
             {
@@ -91,16 +61,43 @@ void custom_sparse_LU_factorisation_cpu(SparseMatrix &U, SparseMatrix &L, vector
 
             float multiplier = ik->second / pivot;
 
-            L[i][k] = multiplier;
+            L[i].emplace_back(k, multiplier);
 
-            U[i].erase(ik);
+            auto a = U[i].begin();
+            auto a_end = U[i].end();
+            auto b = pivot_it + 1;
+            auto b_end = U[k].end();
 
-            for (auto kj = U[k].upper_bound(k); kj != U[k].end(); ++kj)
+            merged.clear();
+            merged.reserve(U[i].size() + static_cast<size_t>(b_end - b));
+
+            while (a != a_end || b != b_end)
             {
-                size_t j = kj->first;
-                float ukj = kj->second;
-                U[i][j] -= multiplier * ukj;
+                if (a != a_end && a == ik)
+                {
+                    ++a;
+                    continue;
+                }
+
+                if (b == b_end || (a != a_end && a->first < b->first))
+                {
+                    merged.push_back(*a);
+                    ++a;
+                }
+                else if (a == a_end || b->first < a->first)
+                {
+                    merged.emplace_back(b->first, -multiplier * b->second);
+                    ++b;
+                }
+                else
+                {
+                    merged.emplace_back(a->first, a->second - multiplier * b->second);
+                    ++a;
+                    ++b;
+                }
             }
+
+            U[i].swap(merged);
         }
     }
 }
@@ -126,12 +123,15 @@ void custom_sparse_LU_solve_cpu(const SparseMatrix &L, const SparseMatrix &U, co
     for (size_t ii = n; ii-- > 0;)
     {
         float sum = y[ii];
-        for (auto it = U[ii].upper_bound(ii); it != U[ii].end(); ++it)
+
+        auto diag_it = findInRow(U[ii], ii);
+
+        for (auto it = diag_it + 1; it != U[ii].end(); ++it)
         {
-            size_t j = it->first;
-            sum -= it->second * state_values[j];
+            sum -= it->second * state_values[it->first];
         }
-        state_values[ii] = sum / U[ii].find(ii)->second;
+
+        state_values[ii] = sum / diag_it->second;
     }
 }
 
@@ -153,7 +153,7 @@ PolicyIteration policy_iter_matrix_custom_sparse_LU_cpu(const MDP &mdp)
     vector<float> R(n);
     vector<size_t> permutation(n);
 
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < 50; i++)
     {
         iter.num_iterations++;
         cout << "policy iteration CPU Custom Sparse LU loop " << iter.num_iterations << endl;

@@ -6,24 +6,20 @@
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include "thrust/device_vector.h"
-#include "image_lib.h"
-#include "matrix_lib.h"
-#include "ch3_matrix.cuh"
 #include "mdp_csr.h"
-#include "policy_iter_fp.cuh"
-#include "policy_iter_matrix.cuh"
+#include "methods.h"
 
 using namespace std;
 
-void loadMatrices(vector<float>& A, vector<float>& B, vector<float>& C)
-{
-	size_t num = 20;
-	size_t width = 512;
-
-	A = loadMatrix("data/A_f32_K20_N512.npy", num, width);
-	B = loadMatrix("data/B_f32_K20_N512.npy", num, width);
-	C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
-}
+// void loadMatrices(vector<float>& A, vector<float>& B, vector<float>& C)
+// {
+// 	size_t num = 20;
+// 	size_t width = 512;
+//
+// 	A = loadMatrix("data/A_f32_K20_N512.npy", num, width);
+// 	B = loadMatrix("data/B_f32_K20_N512.npy", num, width);
+// 	C = loadMatrix("data/C_f32_K20_N512.npy", num, width);
+// }
 
 bool checkSamePolicy(const PolicyIteration& iter1, const PolicyIteration& iter2)
 {
@@ -117,10 +113,13 @@ bool contains(const vector<string>& v, const string& s)
 vector<string> all_algs = {
 	"CPU Fixed-Point",
 	"CPU Sparse LU",
+	"CPU Sparse LU No Pivot",
 	"CPU Custom Sparse LU",
+	"CPU Gaussian No Pivot",
 	"CPU Sparse BiCGSTAB",
 	"GPU Fixed-Point",
 	"GPU Sparse LU",
+	"GPU Sparse LU No Pivot",
 	"GPU Sparse BiCGSTAB" };
 
 vector<string> all_fast_algs = {
@@ -133,8 +132,11 @@ vector<string> all_fast_algs = {
 
 vector<string> LU_algs = {
 	"CPU Sparse LU",
+	"CPU Sparse LU No Pivot",
 	"CPU Custom Sparse LU",
-	"GPU Sparse LU" };
+	"CPU Gaussian No Pivot",
+	"GPU Sparse LU",
+	"GPU Sparse LU No Pivot" };
 
 vector<string> library_LU_algs = {
 	"GPU Fixed-Point",
@@ -271,10 +273,13 @@ void analysis(int argc, char* argv[], vector<string> algs)
 
 		PolicyIteration iter_cpu;
 		PolicyIteration iter_matrix_sparse_LU_cpu;
+		PolicyIteration iter_matrix_sparse_LU_no_pivot_cpu;
 		PolicyIteration iter_matrix_custom_sparse_LU_cpu;
+		PolicyIteration iter_gaussian_no_pivot_cpu;
 		PolicyIteration iter_matrix_BiCGSTAB_cpu;
 		PolicyIteration iter_FP_gpu;
 		PolicyIteration iter_matrix_sparse_LU_gpu;
+		PolicyIteration iter_matrix_sparse_LU_no_pivot_gpu;
 		PolicyIteration iter_BiCGSTAB_gpu;
 
 		if (contains(algs, "CPU Fixed-Point"))
@@ -295,6 +300,15 @@ void analysis(int argc, char* argv[], vector<string> algs)
 			run_results.push_back({ "CPU Sparse LU", &iter_matrix_sparse_LU_cpu, cpu_matrix_sparse_LU_time });
 		}
 
+		if (contains(algs, "CPU Sparse LU No Pivot"))
+		{
+			tim.reset();
+			tim.start();
+			iter_matrix_sparse_LU_no_pivot_cpu = policy_iter_matrix_sparse_LU_no_pivot_cpu(loaded);
+			double cpu_matrix_sparse_LU_no_pivot_time = tim.lap_ms();
+			run_results.push_back({ "CPU Sparse LU No Pivot", &iter_matrix_sparse_LU_no_pivot_cpu, cpu_matrix_sparse_LU_no_pivot_time });
+		}
+
 		if (contains(algs, "CPU Custom Sparse LU"))
 		{
 			tim.reset();
@@ -302,6 +316,15 @@ void analysis(int argc, char* argv[], vector<string> algs)
 			iter_matrix_custom_sparse_LU_cpu = policy_iter_matrix_custom_sparse_LU_cpu(loaded);
 			double cpu_matrix_custom_sparse_LU_time = tim.lap_ms();
 			run_results.push_back({ "CPU Custom Sparse LU", &iter_matrix_custom_sparse_LU_cpu, cpu_matrix_custom_sparse_LU_time });
+		}
+
+		if (contains(algs, "CPU Gaussian No Pivot"))
+		{
+			tim.reset();
+			tim.start();
+			iter_gaussian_no_pivot_cpu = policy_iter_gaussian_no_pivot_cpu(loaded);
+			double cpu_gaussian_no_pivot_time = tim.lap_ms();
+			run_results.push_back({ "CPU Gaussian No Pivot", &iter_gaussian_no_pivot_cpu, cpu_gaussian_no_pivot_time });
 		}
 
 		if (contains(algs, "CPU Sparse BiCGSTAB"))
@@ -344,6 +367,17 @@ void analysis(int argc, char* argv[], vector<string> algs)
 				<< " converged=" << iter_matrix_sparse_LU_gpu.converged
 				<< " free_before=" << (free_before / (1024 * 1024)) << "MB"
 				<< " free_after=" << (free_after / (1024 * 1024)) << "MB" << endl;
+		}
+
+		if (contains(algs, "GPU Sparse LU No Pivot"))
+		{
+			cudaDeviceSynchronize();
+			tim.reset();
+			tim.start();
+			iter_matrix_sparse_LU_no_pivot_gpu = policy_iter_matrix_sparse_LU_no_pivot_gpu(loaded);
+			cudaDeviceSynchronize();
+			double gpu_sparse_LU_no_pivot_time = tim.lap_ms();
+			run_results.push_back({ "GPU Sparse LU No Pivot", &iter_matrix_sparse_LU_no_pivot_gpu, gpu_sparse_LU_no_pivot_time });
 		}
 
 		if (contains(algs, "GPU Sparse BiCGSTAB"))

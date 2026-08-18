@@ -14,7 +14,7 @@
 using namespace std;
 using namespace cnpy;
 
-vector<float> generateMatrices(size_t num, size_t width, int seed)
+inline vector<float> generateMatrices(size_t num, size_t width, int seed)
 {
     mt19937 rng(seed);
     uniform_real_distribution<float> dist(0.0f, 1.0f);
@@ -29,7 +29,7 @@ vector<float> generateMatrices(size_t num, size_t width, int seed)
     return data;
 }
 
-void saveMatrix(
+inline void saveMatrix(
     const string &path,
     const vector<float> &data,
     size_t num,
@@ -39,7 +39,7 @@ void saveMatrix(
     npy_save(path, data.data(), shape, "w");
 }
 
-vector<float> loadMatrix(
+inline vector<float> loadMatrix(
     const string &filename,
     size_t &num,
     size_t &width)
@@ -54,7 +54,7 @@ vector<float> loadMatrix(
     return vector<float>(ptr, ptr + arr.num_vals);
 }
 
-vector<float> eigenRefMatrixMul(const vector<float> &A, const vector<float> &B, size_t num, size_t width)
+inline vector<float> eigenRefMatrixMul(const vector<float> &A, const vector<float> &B, size_t num, size_t width)
 {
     vector<float> C(A.size());
 
@@ -90,7 +90,7 @@ vector<float> eigenRefMatrixMul(const vector<float> &A, const vector<float> &B, 
     return C;
 }
 
-void printMatrix(const vector<float> &M, size_t width)
+inline void printMatrix(const vector<float> &M, size_t width)
 {
     ostringstream oss;
     oss << fixed << setprecision(3);

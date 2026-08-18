@@ -21,7 +21,7 @@ struct MDP
     vector<size_t> row_ptr;
 };
 
-vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, size_t max_successors, float gamma, int seed)
+inline vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, size_t max_successors, float gamma, int seed)
 {
     vector<MDP> mdps;
     mdps.reserve(number);
@@ -121,7 +121,7 @@ vector<MDP> generate_random_MDPs(size_t number, size_t states, size_t actions, s
     return mdps;
 }
 
-void print_MDP(const MDP &mdp)
+inline void print_MDP(const MDP &mdp)
 {
     cout << "MDP information\n";
     cout << "---------------\n";
@@ -162,7 +162,7 @@ void print_MDP(const MDP &mdp)
     }
 }
 
-void save_mdp(const MDP &mdp, const string &filename)
+inline void save_mdp(const MDP &mdp, const string &filename)
 {
     vector<uint64_t> metadata = {
         static_cast<uint64_t>(mdp.num_states),
@@ -181,7 +181,7 @@ void save_mdp(const MDP &mdp, const string &filename)
     cnpy::npz_save(filename, "row_ptr", row_ptr_64.data(), {row_ptr_64.size()}, "a");
 }
 
-MDP load_mdp(const string &filename)
+inline MDP load_mdp(const string &filename)
 {
     MDP mdp;
 

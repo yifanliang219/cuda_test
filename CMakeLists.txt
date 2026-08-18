@@ -38,6 +38,16 @@ target_link_libraries(cnpy PUBLIC
 
 add_executable(main
     src/main.cu
+    include/policy_iter_fp_cpu.cpp
+    include/policy_iter_fp_gpu.cu
+    include/policy_iter_dense_lu_cpu.cpp
+    include/policy_iter_sparse_lu_cpu.cpp
+    include/policy_iter_bicgstab_cpu.cpp
+    include/policy_iter_custom_sparse_lu_cpu.cpp
+    "include/policy_iter_custom_gaussian_no_pivot_cpu.cpp"
+    include/policy_iter_dense_lu_gpu.cu
+    include/policy_iter_sparse_lu_gpu.cu
+    include/policy_iter_bicgstab_gpu.cu
 )
 
 target_include_directories(main PRIVATE
