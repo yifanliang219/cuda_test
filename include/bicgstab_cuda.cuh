@@ -386,7 +386,7 @@ PolicyIteration policy_iter_matrix_sparse_BiCGSTAB_gpu(const MDP &mdp, float tol
             break;
         }
 
-        if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
+        if (policy_improvement_gpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
             //cout << "policy iteration GPU sparse BiCGSTAB completed successfully." << endl;

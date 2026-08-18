@@ -12,5 +12,19 @@
         "cudss_DIR": "C:/Program Files/NVIDIA cuDSS/v0.8/lib/13/cmake/cudss"
       }
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-debug",
+      "displayName": "Debug",
+      "configurePreset": "windows-release",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-release-build",
+      "displayName": "Release",
+      "configurePreset": "windows-release",
+      "configuration": "Release"
+    }
   ]
 }

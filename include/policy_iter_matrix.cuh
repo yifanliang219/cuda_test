@@ -140,16 +140,16 @@ PolicyIteration policy_iter_matrix_sparse_LU_cpu(const MDP &mdp)
     triplets.reserve(mdp.num_states + mdp.prob.size());
     Eigen::SparseLU<SpMat> solver;
 
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < 50; i++)
     {
         iter.num_iterations++;
-        //cout << "policy iteration CPU Sparse LU loop " << iter.num_iterations << endl;
+        cout << "policy iteration CPU Sparse LU loop " << iter.num_iterations << endl;
         policy_eval_matrix_sparse_LU_cpu(mdp, iter.policy, iter.state_values, A, R, triplets, solver);
 
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
-            //cout << "policy iteration CPU Sparse LU completed successfully." << endl;
+            cout << "policy iteration CPU Sparse LU completed successfully." << endl;
             break;
         }
     }
@@ -185,13 +185,13 @@ PolicyIteration policy_iter_matrix_BiCGSTAB_cpu(const MDP &mdp, float tolerance)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
-        //cout << "policy iteration CPU BiCGSTAB loop " << iter.num_iterations << endl;
+        cout << "policy iteration CPU BiCGSTAB loop " << iter.num_iterations << endl;
         policy_eval_matrix_BiCGSTAB_cpu(mdp, iter.policy, iter.state_values, A, R, triplets, solver);
 
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
-            //cout << "policy iteration CPU BiCGSTAB completed successfully." << endl;
+            cout << "policy iteration CPU BiCGSTAB completed successfully." << endl;
             break;
         }
     }
@@ -340,7 +340,7 @@ PolicyIteration policy_iter_matrix_dense_LU_gpu(const MDP &mdp)
 
         policy_eval_matrix_dense_LU_gpu(mdp, iter.policy, iter.state_values, A_d, R_d, policy_d, prob_d, reward_d, next_state_d, row_ptr_d, solver_handle, work_d, ipiv_d, info_d);
 
-        if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
+        if (policy_improvement_gpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
             cout << "policy iteration GPU dense LU completed successfully." << endl;
@@ -450,14 +450,14 @@ PolicyIteration policy_iter_matrix_sparse_LU_gpu(const MDP &mdp)
     {
         iter.num_iterations++;
 
-        //cout << "policy iteration GPU cuDSS loop " << iter.num_iterations << endl;
+        cout << "policy iteration GPU cuDSS loop " << iter.num_iterations << endl;
 
         policy_eval_matrix_sparse_LU_gpu(mdp, iter.policy, iter.state_values, cudss_handle, cudss_config, policy_d, A_row_ptr_d, A_col_ind_d, A_values_d, R_d, V_d, prob_d, reward_d, next_state_d, mdp_row_ptr_d);
 
-        if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
+        if (policy_improvement_gpu(mdp, iter.policy, iter.state_values))
         {
             iter.converged = true;
-            //cout << "policy iteration GPU cuDSS completed successfully." << endl;
+            cout << "policy iteration GPU cuDSS completed successfully." << endl;
             break;
         }
     }

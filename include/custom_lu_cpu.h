@@ -156,6 +156,7 @@ PolicyIteration policy_iter_matrix_custom_sparse_LU_cpu(const MDP &mdp)
     for (int i = 0; i < 10000; i++)
     {
         iter.num_iterations++;
+        cout << "policy iteration CPU Custom Sparse LU loop " << iter.num_iterations << endl;
         policy_eval_matrix_sparse_LU_cpu(mdp, iter.policy, iter.state_values, A, L, R, permutation);
         if (policy_improvement_cpu(mdp, iter.policy, iter.state_values))
         {

@@ -69,4 +69,5 @@ target_link_libraries(main PRIVATE
 
 set_target_properties(main PROPERTIES
     CUDA_ARCHITECTURES 89
+    VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
